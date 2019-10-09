@@ -1,0 +1,113 @@
+@startuml class-diagram
+title Class Diagram
+
+class models.User {
+  +TelegramUser userInfo
+  +Guid id
+
+  +List<models.Record> GetRecords()
+}
+
+class models.Record {
+  +models.User owner
+  +DateTime fromTime
+  +DateTime toTime
+  +String comment
+  +Guid id
+}
+
+class models.Schedule {
+  +boolean CreateRecord(models.Record record)
+
+  +List<TimeInterval> AlternativeTimeIntervals(models.TimeInterval timeInterval)
+  +List<Record> GetRecords()
+}
+
+class TelegramBot {
+  -Map<TelegramChat, dialogues.AbstractDialogue> sessions
+  -TelegramClient client
+
+  +TelegramApi(String token)
+  +void run()
+
+  -OnMessage(TelegramMessage message)
+}
+
+note top of TelegramBot
+  From requirement "System must be built on Telegram bot technologies"
+end note
+
+
+abstract class dialogues.AbstractDialogue {
+  #models.Schedule schedule
+  #Func<TelegramMessage, boolean> sendMessage
+
+  +dialogues.AbstractDialogue(Func<TelegramMessage, boolean> sendMessage)
+  +dialogues.AbstractDialogue OnMessage(TelegramMessage message)
+}
+
+class dialogues.MainMenu extends dialogues.AbstractDialogue
+class dialogues.MySchedule extends dialogues.AbstractDialogue
+class dialogues.CreateRecord extends dialogues.AbstractDialogue
+class dialogues.UpdateRecord extends dialogues.AbstractDialogue
+class dialogues.DeleteRecord extends dialogues.AbstractDialogue
+class dialogues.Start extends dialogues.AbstractDialogue
+
+note as NoteCreateRecord
+  From use case US002 "Create a new reservation"
+end note
+
+NoteCreateRecord .. dialogues.CreateRecord
+
+note as NoteUpdateRecord
+  From use case US001 "Update reservation record"
+end note
+
+NoteUpdateRecord .. dialogues.UpdateRecord
+
+note as NoteDeleteRecord
+  From use case US003 "Delete a booking record"
+end note
+
+NoteDeleteRecord .. dialogues.DeleteRecord
+
+note top of models.Record
+  From use cases
+  US001 "Update reservation record",
+  US002 "Create a new reservation"
+
+  Records (reservatiosn) should have time period
+end note
+
+note top of models.Schedule
+  From use cases
+  US001 "Update reservation record",
+  US002 "Create a new reservation"
+
+  System should propose alternative times for reservations.
+end note
+
+note as NoteSchedule
+  From use case US004 "Read reservation record"
+
+  System should provide a list of reservations for a user
+end note
+
+NoteSchedule .. models.Schedule
+NoteSchedule .. dialogues.MySchedule
+
+models.User *-- models.Record
+models.Schedule o-- models.Record
+
+models.Schedule -- dialogues.AbstractDialogue
+
+TelegramBot -- dialogues.AbstractDialogue
+TelegramBot -- dialogues.Start
+
+dialogues.Start -- dialogues.MainMenu
+dialogues.MainMenu -- dialogues.MySchedule
+dialogues.MainMenu -- dialogues.CreateRecord
+
+dialogues.MySchedule -- dialogues.UpdateRecord
+dialogues.MySchedule -- dialogues.DeleteRecord
+@enduml
