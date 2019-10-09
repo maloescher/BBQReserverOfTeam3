@@ -1,0 +1,141 @@
+@startuml ad-us001
+title US001: Update reservation record
+
+note left
+  **Precondition**
+  User has a reservation record and request update
+
+  **Assumption**
+  User wants to update something in his record
+end note
+
+(*) --> User request update for his record
+--> User choose data to modify
+--> System validates the data
+
+if "New data is valid?" then
+  -->[Yes] Modify Record
+  --> Show message
+  --> (*)
+else
+  -->[Something went wrong] Shows alternative time periods
+  --> Return error
+  --> (*)
+endif
+
+note left
+  **Postcondition**
+  Server informs the user is update successful or not
+end note
+@enduml
+
+@startuml ad-us002
+title US002: Create a new reservation
+
+note left
+  **Precondition**
+  The user wants to reserve the time at the BBQ place
+end note
+
+(*) --> "User clicks 'Create new reservation' button"
+--> User enters a time interval
+--> Server checks if the time interval is unavailable
+
+if "Time period is available" then
+  -->[Yes] Server approves the time interval
+else
+  -->[No] Server proposes a time that is close to inputted one
+  --> User selects one of the proposed time intervals
+  --> Server approves the time interval
+endif
+--> User enters an optional comment
+--> User approves his reservation request
+--> Server saves the reservation to the schedule
+--> (*)
+
+note left
+  **Postcondition**
+  The schedule is updated by adding a new entry.
+end note
+@enduml
+
+@startuml ad-us003
+title US003: Delete a booking record
+
+note left
+  **Precondition**
+  User has a booking record
+end note
+
+(*) --> User press modify button
+--> User press delete button
+--> System asks for confirmation
+
+if "User confirms the deletion" then
+  -->[Yes] System delete the record
+  --> User receives confirmation message
+  --> (*)
+else
+  -->[No] System return to the Modify screen
+  --> (*)
+endif
+
+note left
+  **Postcondition**
+  The reservation is deleted.
+end note
+@enduml
+
+@startuml ad-us004
+title US004: Read reservation record
+
+note left
+  **Precondition**
+  Reservation exists
+
+  **Assumptions**
+  The user want to check his reservation
+end note
+
+(*) --> User enters the system and click it reservation
+--> User see his reservation data and can edit it or read
+--> (*)
+
+note left
+  **Postcondition**
+  None
+end note
+@enduml
+
+@startuml ad-us005
+title US005: Checking a schedule
+
+note left
+  **Precondition**
+  The user's location is in the system, the system shows to the user main menu
+
+  **Assumption**
+  The user wants to view the schedule for some time period (day, week, month)
+end note
+
+(*) --> The user selects a schedule check in the menu
+--> The system prompts the user to select a time period
+
+if "The user selects a time period" then
+  -->[Daily schedule] The system generates a schedule for the daily schedule
+  --> The system shows to the user schedule of time period
+else
+  -->[Weekly schedule] The system generates a schedule for the weekly schedule
+  --> The system shows to the user schedule of time period
+else
+  -->[Monthly schedule] The system generates a schedule for the monthly schedule
+  --> The system shows to the user schedule of time period
+endif
+
+--> (*)
+
+note left
+  **Postcondition**
+  The system shows to the user schedule of chosen time period
+end note
+@enduml
