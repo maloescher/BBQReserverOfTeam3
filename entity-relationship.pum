@@ -1,0 +1,20 @@
+@startuml entity-relationship
+entity User {
+  * userId
+  --
+  * telegramInfo
+}
+
+entity Record {
+  * recordId
+  --
+  * fromTime
+  * toTime
+  * userId
+  comment
+}
+
+User ||--o{ Record
+
+
+@enduml
