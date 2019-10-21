@@ -10,15 +10,12 @@ namespace BBQReserverBot.Dialogues
 {
     public abstract class AbstractDialogue
     {
-        protected Func<string, IReplyMarkup, bool> _sendMessege;
+        protected Func<string, IReplyMarkup, Task<bool>> _sendMessege;
 
-        public AbstractDialogue(Func<string, IReplyMarkup, bool> sendMessage)
+        public AbstractDialogue(Func<string, IReplyMarkup, Task<bool>> sendMessage)
         {
             _sendMessege = sendMessage;
         }
-        public abstract AbstractDialogue OnMessage(MessageEventArgs args);
-
-
-        public abstract CallbackQuery
+        public abstract Task<AbstractDialogue> OnMessage(MessageEventArgs args);
     }
 }

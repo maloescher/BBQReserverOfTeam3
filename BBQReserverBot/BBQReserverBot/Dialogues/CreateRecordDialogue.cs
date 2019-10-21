@@ -11,9 +11,9 @@ namespace BBQReserverBot.Dialogues
 {
     public class CreateRecordDialogue : AbstractDialogue
     {
-        public CreateRecordDialogue(Func<string, IReplyMarkup, bool> onMessage) : base(onMessage) { }
+        public CreateRecordDialogue(Func<string, IReplyMarkup, Task<bool>> onMessage) : base(onMessage) { }
         private Record record;
-        public override AbstractDialogue OnMessage(MessageEventArgs args)
+        public async override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
         {
             var msgText = args.Message.Text;
             switch (msgText)
@@ -52,7 +52,7 @@ namespace BBQReserverBot.Dialogues
                                     new[]{"20:00" },
                                     new[]{"21:00" },
                                 };
-                            _sendMessege("Select new starting time", markup);
+                            await _sendMessege("Select new starting time", markup);
                             return this;
                         }
                         else
@@ -62,7 +62,7 @@ namespace BBQReserverBot.Dialogues
                                     new[]{"Approve" },
                                     new[]{"I've changed my mind" },
                                 };
-                            _sendMessege("Great! Just approve your reservation and thats it!", markup);
+                            await _sendMessege("Great! Just approve your reservation and thats it!", markup);
                             return this;
                         }
                     }
@@ -81,7 +81,7 @@ namespace BBQReserverBot.Dialogues
                 case "December":
                     {
                         ProcessMonth(msgText);
-                        _sendMessege("Write the day in numbers it shuld be bigger than todays date", new ReplyKeyboardRemove());
+                        await _sendMessege("Write the day in numbers it shuld be bigger than todays date", new ReplyKeyboardRemove());
                         return this;
                     }
                     break;
@@ -102,7 +102,7 @@ namespace BBQReserverBot.Dialogues
                             new[]{"November" },
                             new[]{"December" },
                         };
-                        _sendMessege("Select month for the reservation", markup);
+                        await _sendMessege("Select month for the reservation", markup);
                         record = new Record();
                         record.User = args.Message.From;
                         return this;
@@ -111,17 +111,17 @@ namespace BBQReserverBot.Dialogues
                 case "Approve":
                     {
                         ProcessMonth(msgText);
-                        _sendMessege("Yay your reservation is approved! Have a great BBBQing", new ReplyKeyboardRemove());
+                        await _sendMessege("Yay your reservation is approved! Have a great BBBQing", new ReplyKeyboardRemove());
                         var dialog = new MainMenuDialogue(_sendMessege);
-                        return dialog.OnMessage(args);
+                        return await dialog.OnMessage(args);
                     }
                     break;
                 case "I've changed my mind":
                     {
                         ProcessMonth(msgText);
-                        _sendMessege("Okay. See you next time!", new ReplyKeyboardRemove());
+                        await _sendMessege("Okay. See you next time!", new ReplyKeyboardRemove());
                         var dialog = new MainMenuDialogue(_sendMessege);
-                        return dialog.OnMessage(args);
+                        return await dialog.OnMessage(args);
                     }
                     break;
                 default:
@@ -148,13 +148,13 @@ namespace BBQReserverBot.Dialogues
                                     new[]{"20:00" },
                                     new[]{"21:00" },
                                 };
-                                _sendMessege("Select new starting time", markup);
+                                await _sendMessege("Select new starting time", markup);
                                 return this;
                             }
                             else
                             {
                                 ProcessMonth(msgText);
-                                _sendMessege("Can't recognise day", new ReplyKeyboardRemove());
+                                await _sendMessege("Can't recognise day", new ReplyKeyboardRemove());
                                 return this;
                             }
 
@@ -162,9 +162,9 @@ namespace BBQReserverBot.Dialogues
                         else
                         {
                             ProcessMonth(msgText);
-                            _sendMessege("Smth went wrong", new ReplyKeyboardRemove());
+                            await _sendMessege("Smth went wrong", new ReplyKeyboardRemove());
                             var dialog = new MainMenuDialogue(_sendMessege);
-                            return dialog.OnMessage(args);
+                            return await dialog.OnMessage(args);
                         }
                     }
                     break;

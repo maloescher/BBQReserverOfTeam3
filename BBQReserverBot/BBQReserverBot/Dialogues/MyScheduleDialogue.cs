@@ -68,9 +68,9 @@ namespace BBQReserverBot.Dialogues
                 }
 
                 result.Append(DaySchedule);
-                result.Append("-----------");
+                result.Append("\n-----------\n");
             }
-
+            return result;
         }
 
 

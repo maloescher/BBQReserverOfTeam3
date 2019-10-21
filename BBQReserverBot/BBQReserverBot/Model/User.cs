@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BBQReserverBot.Model
 {
-    public class User
+    public class TelegramUser
     {
         public Guid Id { get; set; }
         public Telegram.Bot.Types.User UserInfo { get; set; }
