@@ -12356,11 +12356,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Михаил\\source\\repos\\BBQReserverBot\\BBQReserverBot\\BBQReserverBot.csproj",
+      "projectUniqueName": "C:\\Users\\Михаил\\Documents\\GitHub\\BBQReserverOfTeam3\\BBQReserverBot\\BBQReserverBot\\BBQReserverBot.csproj",
       "projectName": "BBQReserverBot",
-      "projectPath": "C:\\Users\\Михаил\\source\\repos\\BBQReserverBot\\BBQReserverBot\\BBQReserverBot.csproj",
+      "projectPath": "C:\\Users\\Михаил\\Documents\\GitHub\\BBQReserverOfTeam3\\BBQReserverBot\\BBQReserverBot\\BBQReserverBot.csproj",
       "packagesPath": "C:\\Users\\Михаил\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Михаил\\source\\repos\\BBQReserverBot\\BBQReserverBot\\obj\\",
+      "outputPath": "C:\\Users\\Михаил\\Documents\\GitHub\\BBQReserverOfTeam3\\BBQReserverBot\\BBQReserverBot\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
