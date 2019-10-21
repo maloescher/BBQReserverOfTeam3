@@ -1,0 +1,11 @@
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\bin\Debug\netcoreapp2.2\BBQReserverBot.deps.json
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\bin\Debug\netcoreapp2.2\BBQReserverBot.runtimeconfig.json
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\bin\Debug\netcoreapp2.2\BBQReserverBot.runtimeconfig.dev.json
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\bin\Debug\netcoreapp2.2\BBQReserverBot.dll
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.csprojAssemblyReference.cache
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.csproj.CoreCompileInputs.cache
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.RazorAssemblyInfo.cache
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.RazorAssemblyInfo.cs
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.AssemblyInfoInputs.cache
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.AssemblyInfo.cs
+C:\Users\Михаил\source\repos\BBQReserverBot\BBQReserverBot\obj\Debug\netcoreapp2.2\BBQReserverBot.RazorTargetAssemblyInfo.cache
