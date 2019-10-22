@@ -16,7 +16,7 @@ namespace BBQReserverBot.Dialogues
         {
             switch(args.Message.Text)
             {
-                case "View the schedule":
+                case "My schedule":
                     break;
                 case "Daily":
                     break;
