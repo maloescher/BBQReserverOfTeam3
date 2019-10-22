@@ -15,7 +15,9 @@ dotnet run
 ```
 
 ## Usage
-```dotnet run API_KEY```
+```
+dotnet run API_KEY
+```
 
 `API_KEY` is the Api Key of the bot. You can create the bot by writing
 to `@BotFather` in Telegram.
