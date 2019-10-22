@@ -7,6 +7,11 @@ namespace BBQReserverBot.Model
 {
     public class Schedule
     {
+        static Schedule()
+        {
+            Records = new List<Record>();
+        }
+
         public static bool CreateRecord(Record record)
         {
             Records.Add(record);

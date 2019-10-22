@@ -33,9 +33,9 @@ namespace BBQReserverBot.Dialogues
                     {
                         ReplyKeyboardMarkup markup = new[]
                         {
-                            //"Create a new reservation",
+                            "Create a new reservation",
                             //"Update or Remove an existing reservation",
-                            "View the schedule"
+                            //"View the schedule"
                         };
                         await _sendMessege(_menueMessage, markup);
                         return this;

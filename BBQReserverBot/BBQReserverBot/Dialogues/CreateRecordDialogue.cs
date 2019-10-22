@@ -11,201 +11,213 @@ namespace BBQReserverBot.Dialogues
 {
     public class CreateRecordDialogue : AbstractDialogue
     {
-        public CreateRecordDialogue(Func<string, IReplyMarkup, Task<bool>> onMessage) : base(onMessage) { }
-        private Record record;
+
+
+        private Dictionary<string, int> Months = new Dictionary<string, int>()
+        {
+            {"January", 1},
+            {"February", 2},
+            {"March", 3},
+            {"April", 4},
+            {"May", 5},
+            {"Jun", 6},
+            {"July", 7},
+            {"August", 8},
+            {"September", 9},
+            {"October", 10},
+            {"November", 11},
+            {"December", 12}
+        };
+
+        private Dictionary<string, bool> Approves = new Dictionary<string, bool>()
+        {
+            {"Approve", true},
+            {"I've changed my mind", false}
+        };
+
+        enum State
+        {
+            Month,
+            Day,
+            Start,
+            End,
+            Approve,
+            Success,
+            Fail
+        }
+
+        private State CurrentState;
+
+        public CreateRecordDialogue(Func<string, IReplyMarkup, Task<bool>> onMessage) : base(onMessage)
+        {
+            CurrentState = State.Month;
+        }
+
+        private Dictionary<string, int> Times = Enumerable
+            .Range(8, 15)
+            .ToDictionary(x => String.Concat(x, ":00"),
+                          x => x);
+
+        private ReplyKeyboardMarkup MakeTimeKeyboard()
+        {
+            return (ReplyKeyboardMarkup)
+                Times
+                .Keys
+                .Select(x => new []{x})
+                .ToArray();
+        }
+
+        private (string, IReplyMarkup) Questions(State state)
+        {
+            switch(state)
+            {
+                case State.Month:
+                    return ("Select the month",
+                            (IReplyMarkup)
+                            (ReplyKeyboardMarkup)
+                            Months.Keys.Select(x => new []{x}).ToArray());
+                case State.Day:
+                    return ("Select the day. Enter the number.",
+                            (IReplyMarkup)
+                            new ReplyKeyboardRemove());
+                case State.Start:
+                    return ("Select the time when you want to start",
+                            (IReplyMarkup)
+                            MakeTimeKeyboard());
+                case State.End:
+                    return ("Select the time when you want to stop",
+                            (IReplyMarkup)
+                            MakeTimeKeyboard());
+                case State.Approve:
+                    return ("Great! Just approve your reservation and that's it!",
+                            (IReplyMarkup)
+                            (ReplyKeyboardMarkup)
+                            Approves.Keys.Select(x => new[]{x}).ToArray());
+                default: throw new NotImplementedException();
+            }
+        }
+
+
+        public void ProcessMonth(string text)
+        {
+            var x = Months.ContainsKey(text) ? (int?) Months[text] : null;
+            if (x != null)
+            {
+                SelectedMonth = (int) x;
+                CurrentState = State.Day;
+            }
+        }
+
+        public void ProcessDay(string text)
+        {
+            var last = DateTime.DaysInMonth(DateTime.Now.Year, SelectedMonth);
+            var x = 0;
+            Int32.TryParse(text, out x);
+            if (x >= 1 && x <= last)
+            {
+                SelectedDay = x;
+                CurrentState = State.Start;
+            }
+        }
+
+        public void ProcessTime(string text, bool isStart)
+        {
+            var x = Times.ContainsKey(text) ? (int?) Times[text] : null;
+            if (x != null)
+            {
+                if (isStart)
+                {
+                    SelectedStart = (int) x;
+                    CurrentState = State.End;
+                }
+                else
+                {
+                    SelectedEnd = (int) x;
+                    CurrentState = State.Approve;
+                }
+            }
+        }
+
+        public void ProcessApprove(string text)
+        {
+            var x = Approves.ContainsKey(text) ? (bool?) Approves[text] : null;
+            if (x != null)
+            {
+                SelectedApproved = (bool) x;
+                CurrentState = SelectedApproved ? State.Success : State.Fail;
+            }
+        }
+
+        private int SelectedMonth;
+        private int SelectedDay;
+        private int SelectedStart;
+        private int SelectedEnd;
+        private bool SelectedApproved;
+
+        public void Process(MessageEventArgs args)
+        {
+            string text = args.Message.Text;
+            switch(CurrentState)
+            {
+                case(State.Month): ProcessMonth(text); break;
+                case(State.Day): ProcessDay(text); break;
+                case(State.Start): ProcessTime(text, true); break;
+                case(State.End): ProcessTime(text, false); break;
+                case(State.Approve): ProcessApprove(text); break;
+                default: throw new NotImplementedException();
+            }
+        }
+
+        public async void SendQuestion()
+        {
+            var msg = Questions(CurrentState);
+            _sendMessege(msg.Item1, msg.Item2);
+        }
+
+        public void Create(Telegram.Bot.Types.User user)
+        {
+            BBQReserverBot.Model.Record r = new BBQReserverBot.Model.Record();
+            r.Id = Guid.NewGuid();
+            r.User = user;
+            r.FromTime = new DateTime(DateTime.Now.Year, SelectedMonth, SelectedDay, SelectedStart, 0, 0);
+            r.ToTime = new DateTime(DateTime.Now.Year, SelectedMonth, SelectedDay, SelectedEnd, 0, 0);
+            if (r.FromTime < r.ToTime)
+            {
+                r.ToTime.AddDays(1);
+            }
+            if (r.FromTime < DateTime.Now)
+            {
+                r.FromTime.AddYears(1);
+                r.ToTime.AddYears(1);
+            }
+            Schedule.Records.Add(r);
+        }
+
         public async override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
         {
-            var msgText = args.Message.Text;
-            switch (msgText)
+
+            Process(args);
+
+            if (CurrentState == State.Success)
             {
-                case "08:00":
-                case "09:00":
-                case "10:00":
-                case "11:00":
-                case "12:00":
-                case "13:00":
-                case "14:00":
-                case "15:00":
-                case "16:00":
-                case "17:00":
-                case "18:00":
-                case "19:00":
-                case "20:00":
-                case "21:00":
-                    {
-                        if (!ProcessTime(msgText))
-                        {
-                            ReplyKeyboardMarkup markup = new[]
-                                    {
-                                    new[]{"08:00" },
-                                    new[]{"09:00" },
-                                    new[]{"10:00" },
-                                    new[]{"11:00" },
-                                    new[]{"12:00" },
-                                    new[]{"13:00" },
-                                    new[]{"14:00" },
-                                    new[]{"15:00" },
-                                    new[]{"16:00" },
-                                    new[]{"17:00" },
-                                    new[]{"18:00" },
-                                    new[]{"19:00" },
-                                    new[]{"20:00" },
-                                    new[]{"21:00" },
-                                };
-                            await _sendMessege("Select new starting time", markup);
-                            return this;
-                        }
-                        else
-                        {
-                            ReplyKeyboardMarkup markup = new[]
-                           {
-                                    new[]{"Approve" },
-                                    new[]{"I've changed my mind" },
-                                };
-                            await _sendMessege("Great! Just approve your reservation and thats it!", markup);
-                            return this;
-                        }
-                    }
-                    break;
-                case "January":
-                case "February":
-                case "March":
-                case "April":
-                case "May":
-                case "Jun":
-                case "July":
-                case "August":
-                case "September":
-                case "October":
-                case "November":
-                case "December":
-                    {
-                        ProcessMonth(msgText);
-                        await _sendMessege("Write the day in numbers it shuld be bigger than todays date", new ReplyKeyboardRemove());
-                        return this;
-                    }
-                    break;
-                case "Create a new reservation":
-                    {
-                        ReplyKeyboardMarkup markup = new[]
-                        {
-                            new[]{"January" },
-                            new[]{"February" },
-                            new[]{"March" },
-                            new[]{"April" },
-                            new[]{"May" },
-                            new[]{"Jun" },
-                            new[]{"July" },
-                            new[]{"August" },
-                            new[]{"September" },
-                            new[]{"October" },
-                            new[]{"November" },
-                            new[]{"December" },
-                        };
-                        await _sendMessege("Select month for the reservation", markup);
-                        record = new Record();
-                        record.User = args.Message.From;
-                        return this;
-                    }
-                    break;
-                case "Approve":
-                    {
-                        ProcessMonth(msgText);
-                        await _sendMessege("Yay your reservation is approved! Have a great BBBQing", new ReplyKeyboardRemove());
-                        var dialog = new MainMenuDialogue(_sendMessege);
-                        return await dialog.OnMessage(args);
-                    }
-                    break;
-                case "I've changed my mind":
-                    {
-                        ProcessMonth(msgText);
-                        await _sendMessege("Okay. See you next time!", new ReplyKeyboardRemove());
-                        var dialog = new MainMenuDialogue(_sendMessege);
-                        return await dialog.OnMessage(args);
-                    }
-                    break;
-                default:
-                    {
-                        if(int.TryParse(msgText, out int day))
-                        {
-                            if(day>0 && day < 32)
-                            {
-                                ProcessDay(msgText);
-                                ReplyKeyboardMarkup markup = new[]
-                                {
-                                    new[]{"08:00" },
-                                    new[]{"09:00" },
-                                    new[]{"10:00" },
-                                    new[]{"11:00" },
-                                    new[]{"12:00" },
-                                    new[]{"13:00" },
-                                    new[]{"14:00" },
-                                    new[]{"15:00" },
-                                    new[]{"16:00" },
-                                    new[]{"17:00" },
-                                    new[]{"18:00" },
-                                    new[]{"19:00" },
-                                    new[]{"20:00" },
-                                    new[]{"21:00" },
-                                };
-                                await _sendMessege("Select new starting time", markup);
-                                return this;
-                            }
-                            else
-                            {
-                                ProcessMonth(msgText);
-                                await _sendMessege("Can't recognise day", new ReplyKeyboardRemove());
-                                return this;
-                            }
-
-                        }
-                        else
-                        {
-                            ProcessMonth(msgText);
-                            await _sendMessege("Smth went wrong", new ReplyKeyboardRemove());
-                            var dialog = new MainMenuDialogue(_sendMessege);
-                            return await dialog.OnMessage(args);
-                        }
-                    }
-                    break;
+                Create(args.Message.From);
+                _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
+                             new ReplyKeyboardRemove());
+                var md = new MainMenuDialogue(_sendMessege);
+                md.OnMessage(args);
+                return md;
             }
-        }
 
-        private void ProcessMonth(string month)
-        {
-            record.FromTime = new DateTime(DateTime.Now.Year, DateTime.ParseExact(month, "MMMM", CultureInfo.CurrentCulture).Month, 1);
-        }
-
-        private bool ProcessTime(string time)
-        {
-            if (record.FromTime.Hour == 0)
+            if (CurrentState == State.Fail)
             {
-                record.FromTime.AddHours(DateTime.ParseExact(time, "hh:mm", CultureInfo.CurrentCulture).Hour);
-                if (DateTime.Now > record.FromTime)
-                {
-                    record.FromTime.AddYears(1);
-                }
-                return false;
+                _sendMessege("Ok!)", new ReplyKeyboardRemove());
+                var md = new MainMenuDialogue(_sendMessege);
+                md.OnMessage(args);
+                return md;
             }
-            else
-            {
-                record.ToTime = record.FromTime;
-                record.ToTime.AddHours(DateTime.ParseExact(time, "hh:mm", CultureInfo.CurrentCulture).Hour);
-                if (DateTime.Now > record.FromTime)
-                {
-                    record.FromTime.AddYears(1);
-                }
-                return true;
-            }
-        }
 
-        private void ProcessDay(string day)
-        {
-            /*
-            var firstDayOfMonth = new DateTime(record.FromTime.Year, record.FromTime.Month, 1);
-            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);*/
-
-            record.FromTime.AddDays(DateTime.ParseExact(day, "dd", CultureInfo.CurrentCulture).Day - 1);
+            SendQuestion();
+            return this;
         }
     }
 }

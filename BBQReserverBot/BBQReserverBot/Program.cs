@@ -20,10 +20,11 @@ namespace BBQReserverBot
 {
     public class Program
     {
-        private static Dictionary<int, AbstractDialogue> users;
-        private static readonly TelegramBotClient Bot = new TelegramBotClient("Your API key");
+        private static Dictionary<int, AbstractDialogue> users = new Dictionary<int, AbstractDialogue>();
+        private static TelegramBotClient Bot;
         public static void Main(string[] args)
         {
+            Bot = new TelegramBotClient(args[0]);
             var me = Bot.GetMeAsync().Result;
             Console.Title = me.Username;
 
@@ -58,7 +59,7 @@ namespace BBQReserverBot
                     replyMarkup: markup);
                     return true;
                 }));
-                var dialog = await users[user.GetValueOrDefault()].OnMessage(messageEventArgs);
+                var dialog = await users[messageEventArgs.Message.From.Id].OnMessage(messageEventArgs);
                 users[user.GetValueOrDefault()] = dialog;
             }
 
