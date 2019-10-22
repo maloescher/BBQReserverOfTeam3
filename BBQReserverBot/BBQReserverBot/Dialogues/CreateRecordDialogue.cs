@@ -174,7 +174,15 @@ namespace BBQReserverBot.Dialogues
             _sendMessege(msg.Item1, msg.Item2);
         }
 
-        public void Create(Telegram.Bot.Types.User user)
+        private bool CheckTimeInterval(BBQReserverBot.Model.Record record)
+        {
+            var interseptions = from r in Schedule.Records
+                where r.FromTime < record.ToTime && r.ToTime > record.FromTime
+                select r;
+            return interseptions.Count() > 0;
+        }
+
+        public bool Create(Telegram.Bot.Types.User user)
         {
             BBQReserverBot.Model.Record r = new BBQReserverBot.Model.Record();
             r.Id = Guid.NewGuid();
@@ -190,7 +198,12 @@ namespace BBQReserverBot.Dialogues
                 r.FromTime.AddYears(1);
                 r.ToTime.AddYears(1);
             }
+            if (CheckTimeInterval(r))
+            {
+                return false;
+            }
             Schedule.Records.Add(r);
+            return true;
         }
 
         public async override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
@@ -200,9 +213,17 @@ namespace BBQReserverBot.Dialogues
 
             if (CurrentState == State.Success)
             {
-                Create(args.Message.From);
-                _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
-                             new ReplyKeyboardRemove());
+                bool success = Create(args.Message.From);
+                if (success)
+                {
+                    _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
+                                 new ReplyKeyboardRemove());
+                }
+                else
+                {
+                    _sendMessege("There is already a reservation at that time. Maybe you can join them))",
+                                 new ReplyKeyboardRemove());
+                }
                 var md = new MainMenuDialogue(_sendMessege);
                 md.OnMessage(args);
                 return md;
