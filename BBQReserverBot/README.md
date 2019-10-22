@@ -2,10 +2,11 @@
 Bot for reserving the BBQ zone in Innopolis.
 
 ## Installation
-The program is compiled using `dotnet`.
+The program is compiled using `dotnet` from the `BBQReserverBot` directory.
 
 Run
 ```
+cd BBQReserverBot
 dotnet build
 ```
 
