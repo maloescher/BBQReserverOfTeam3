@@ -8,11 +8,17 @@ using BBQReserverBot.Model;
 
 namespace BBQReserverBot.Dialogues
 {
+    /// <summary>
+    ///   Use Cases US001, US002, US003, US004, US005 start from the Main Menu.
+    /// </summary>
     public class MainMenuDialogue : AbstractDialogue
     {
         public MainMenuDialogue(Func<string, IReplyMarkup, Task<bool>> sendMessege) : base(sendMessege) { }
         private static string _menueMessage = "What do you like to do?";
 
+        /// <summary>
+        ///   US005 continues here after the Main Menu.
+        /// </summary>
         class MyScheduleDialogue2 : AbstractDialogue
         {
             public MyScheduleDialogue2(Func<string, IReplyMarkup, Task<bool>> onMessage) : base(onMessage) { }

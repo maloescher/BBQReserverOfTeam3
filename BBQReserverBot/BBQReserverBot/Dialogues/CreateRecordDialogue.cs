@@ -9,6 +9,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BBQReserverBot.Dialogues
 {
+    /// <summary>
+    ///   US002 continues here after the Main Menu
+    /// </summary>
     public class CreateRecordDialogue : AbstractDialogue
     {
 
