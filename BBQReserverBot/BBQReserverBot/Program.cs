@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using BBQReserverBot.Dialogues;
 using BBQReserverBot.Model;
 using Microsoft.AspNetCore;
@@ -38,7 +39,7 @@ namespace BBQReserverBot
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}");
-            Console.ReadLine();
+            while (true) { Thread.Sleep(100); }
             Bot.StopReceiving();
             // CreateWebHostBuilder(args).Build().Run();
         }
