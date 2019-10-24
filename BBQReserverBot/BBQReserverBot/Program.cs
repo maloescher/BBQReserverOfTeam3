@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,11 +21,11 @@ namespace BBQReserverBot
 {
     public class Program
     {
-        private static Dictionary<int, AbstractDialogue> users = new Dictionary<int, AbstractDialogue>();
+        private static ConcurrentDictionary<int, AbstractDialogue> users = new ConcurrentDictionary<int, AbstractDialogue>();
         private static TelegramBotClient Bot;
         public static void Main(string[] args)
         {
-            Bot = new TelegramBotClient(args[0]);
+            Bot = new TelegramBotClient("917170897:AAFi3ir6fg5rnk07puxElwAOb2lVMJ2Xd0k");
             var me = Bot.GetMeAsync().Result;
             Console.Title = me.Username;
 
@@ -44,25 +45,21 @@ namespace BBQReserverBot
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
-            if (TryFindUser(messageEventArgs, out var user))
+            if (!TryFindUser(messageEventArgs, out var user))
             {
-                var dialog = await users[user.GetValueOrDefault()].OnMessage(messageEventArgs);
-                users[user.GetValueOrDefault()] = dialog;
-            }
-            else
-            {
-                users.Add(messageEventArgs.Message.From.Id, new StartDialogue(async (string msg, IReplyMarkup markup) =>
+                var startDialog = new StartDialogue(async (string msg, IReplyMarkup markup) =>
                 {
                     await Bot.SendTextMessageAsync(
                     messageEventArgs.Message.Chat.Id,
                     msg,
                     replyMarkup: markup);
                     return true;
-                }));
-                var dialog = await users[messageEventArgs.Message.From.Id].OnMessage(messageEventArgs);
-                users[user.GetValueOrDefault()] = dialog;
+                });
+                users.TryAdd(messageEventArgs.Message.From.Id, startDialog);
+                startDialog.PrintInitialMessage();
             }
-
+            var dialog = await users[messageEventArgs.Message.From.Id].OnMessage(messageEventArgs);
+            users[user.GetValueOrDefault()] = dialog;
         }
         private static bool TryFindUser(MessageEventArgs messageEventArgs, out int? user )
         {

@@ -26,7 +26,7 @@ namespace BBQReserverBot.Dialogues
             {
 
                 var records = from record in Schedule.Records where record.User.Id == args.Message.From.Id select record;
-                _sendMessege("You have the following reservations:",
+                await _sendMessege("You have the following reservations:",
                              (ReplyKeyboardMarkup)
                              records
                              .Select(x => new []{x.FromTime.ToString("dd MMMM, hh:mm") + "—" + x.ToTime.Hour + ":00"})

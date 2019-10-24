@@ -174,7 +174,7 @@ namespace BBQReserverBot.Dialogues
         public async void SendQuestion()
         {
             var msg = Questions(CurrentState);
-            _sendMessege(msg.Item1, msg.Item2);
+            await _sendMessege(msg.Item1, msg.Item2);
         }
 
         private bool CheckTimeInterval(BBQReserverBot.Model.Record record)
@@ -219,24 +219,24 @@ namespace BBQReserverBot.Dialogues
                 bool success = Create(args.Message.From);
                 if (success)
                 {
-                    _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
+                    await _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
                                  new ReplyKeyboardRemove());
                 }
                 else
                 {
-                    _sendMessege("There is already a reservation at that time. Maybe you can join them))",
+                    await _sendMessege("There is already a reservation at that time. Maybe you can join them))",
                                  new ReplyKeyboardRemove());
                 }
                 var md = new MainMenuDialogue(_sendMessege);
-                md.OnMessage(args);
+                await md.OnMessage(args);
                 return md;
             }
 
             if (CurrentState == State.Fail)
             {
-                _sendMessege("Ok!)", new ReplyKeyboardRemove());
+                await _sendMessege("Ok!)", new ReplyKeyboardRemove());
                 var md = new MainMenuDialogue(_sendMessege);
-                md.OnMessage(args);
+                await md.OnMessage(args);
                 return md;
             }
 
