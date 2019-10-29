@@ -26,7 +26,7 @@ namespace BBQReserverBot
         private static TelegramBotClient Bot;
         public static void Main(string[] args)
         {
-            Bot = new TelegramBotClient("917170897:AAFi3ir6fg5rnk07puxElwAOb2lVMJ2Xd0k");
+            Bot = new TelegramBotClient("1041560156:AAHa75a3ywVBanzZhnhkTVH3n475aGKX6mM");
             var me = Bot.GetMeAsync().Result;
             Console.Title = me.Username;
 
