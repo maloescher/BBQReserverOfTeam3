@@ -29,7 +29,7 @@ namespace BBQReserverBot.Dialogues
                 await _sendMessege("You have the following reservations:",
                              (ReplyKeyboardMarkup)
                              records
-                             .Select(x => new []{x.FromTime.ToString("dd MMMM, hh:mm") + "—" + x.ToTime.Hour + ":00"})
+                             .Select(x => new []{x.FromTime.ToString("dd MMMM, HH:mm") + "—" + x.ToTime.Hour + ":00"})
                              .ToArray());
 
                 var md = new MainMenuDialogue(_sendMessege);
