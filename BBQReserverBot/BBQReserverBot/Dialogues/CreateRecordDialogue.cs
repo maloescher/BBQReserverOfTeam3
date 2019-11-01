@@ -14,6 +14,12 @@ namespace BBQReserverBot.Dialogues
     /// </summary>
     public class CreateRecordDialogue : AbstractDialogue
     {
+        private int SelectedMonth;
+        private int SelectedDay;
+        private int SelectedStart;
+        private int SelectedEnd;
+        private bool SelectedApproved;
+        private State CurrentState;
 
 
         private Dictionary<string, int> Months = new Dictionary<string, int>()
@@ -49,7 +55,6 @@ namespace BBQReserverBot.Dialogues
             Fail
         }
 
-        private State CurrentState;
 
         public CreateRecordDialogue(Func<string, IReplyMarkup, Task<bool>> onMessage) : base(onMessage)
         {
@@ -59,43 +64,43 @@ namespace BBQReserverBot.Dialogues
         private Dictionary<string, int> Times = Enumerable
             .Range(8, 15)
             .ToDictionary(x => String.Concat(x, ":00"),
-                          x => x);
+                x => x);
 
         private ReplyKeyboardMarkup MakeTimeKeyboard()
         {
             return (ReplyKeyboardMarkup)
                 Times
-                .Keys
-                .Select(x => new []{x})
-                .ToArray();
+                    .Keys
+                    .Select(x => new[] {x})
+                    .ToArray();
         }
 
         private (string, IReplyMarkup) Questions(State state)
         {
-            switch(state)
+            switch (state)
             {
                 case State.Month:
                     return ("Select the month",
-                            (IReplyMarkup)
-                            (ReplyKeyboardMarkup)
-                            Months.Keys.Select(x => new []{x}).ToArray());
+                        (IReplyMarkup)
+                        (ReplyKeyboardMarkup)
+                        Months.Keys.Select(x => new[] {x}).ToArray());
                 case State.Day:
                     return ("Select the day. Enter the number.",
-                            (IReplyMarkup)
-                            new ReplyKeyboardRemove());
+                        (IReplyMarkup)
+                        new ReplyKeyboardRemove());
                 case State.Start:
                     return ("Select the time when you want to start",
-                            (IReplyMarkup)
-                            MakeTimeKeyboard());
+                        (IReplyMarkup)
+                        MakeTimeKeyboard());
                 case State.End:
                     return ("Select the time when you want to stop",
-                            (IReplyMarkup)
-                            MakeTimeKeyboard());
+                        (IReplyMarkup)
+                        MakeTimeKeyboard());
                 case State.Approve:
                     return ("Great! Just approve your reservation and that's it!",
-                            (IReplyMarkup)
-                            (ReplyKeyboardMarkup)
-                            Approves.Keys.Select(x => new[]{x}).ToArray());
+                        (IReplyMarkup)
+                        (ReplyKeyboardMarkup)
+                        Approves.Keys.Select(x => new[] {x}).ToArray());
                 default: throw new NotImplementedException();
             }
         }
@@ -151,22 +156,26 @@ namespace BBQReserverBot.Dialogues
             }
         }
 
-        private int SelectedMonth;
-        private int SelectedDay;
-        private int SelectedStart;
-        private int SelectedEnd;
-        private bool SelectedApproved;
-
         public void Process(MessageEventArgs args)
         {
             string text = args.Message.Text;
-            switch(CurrentState)
+            switch (CurrentState)
             {
-                case(State.Month): ProcessMonth(text); break;
-                case(State.Day): ProcessDay(text); break;
-                case(State.Start): ProcessTime(text, true); break;
-                case(State.End): ProcessTime(text, false); break;
-                case(State.Approve): ProcessApprove(text); break;
+                case (State.Month):
+                    ProcessMonth(text);
+                    break;
+                case (State.Day):
+                    ProcessDay(text);
+                    break;
+                case (State.Start):
+                    ProcessTime(text, true);
+                    break;
+                case (State.End):
+                    ProcessTime(text, false);
+                    break;
+                case (State.Approve):
+                    ProcessApprove(text);
+                    break;
                 default: throw new NotImplementedException();
             }
         }
@@ -177,41 +186,23 @@ namespace BBQReserverBot.Dialogues
             await _sendMessege(msg.Item1, msg.Item2);
         }
 
-        private bool CheckTimeInterval(BBQReserverBot.Model.Record record)
-        {
-            var interseptions = from r in Schedule.Records
-                where r.FromTime < record.ToTime && r.ToTime > record.FromTime
-                select r;
-            return interseptions.Count() > 0;
-        }
-
         public bool Create(Telegram.Bot.Types.User user)
         {
-            BBQReserverBot.Model.Record r = new BBQReserverBot.Model.Record();
-            r.Id = Guid.NewGuid();
-            r.User = user;
-            r.FromTime = new DateTime(DateTime.Now.Year, SelectedMonth, SelectedDay, SelectedStart, 0, 0);
-            r.ToTime = new DateTime(DateTime.Now.Year, SelectedMonth, SelectedDay, SelectedEnd, 0, 0);
-            if (r.FromTime < r.ToTime)
+            try
             {
-                r.ToTime.AddDays(1);
+                var record = new Record(user, SelectedDay, SelectedMonth, SelectedStart, SelectedEnd);
+                Schedule.Records.Add(record);
+                return true;
             }
-            if (r.FromTime < DateTime.Now)
+            catch (ArgumentException e)
             {
-                r.FromTime.AddYears(1);
-                r.ToTime.AddYears(1);
-            }
-            if (CheckTimeInterval(r))
-            {
+                Console.WriteLine(e);
                 return false;
             }
-            Schedule.Records.Add(r);
-            return true;
         }
 
         public async override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
         {
-
             Process(args);
 
             if (CurrentState == State.Success)
@@ -220,13 +211,14 @@ namespace BBQReserverBot.Dialogues
                 if (success)
                 {
                     await _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
-                                 new ReplyKeyboardRemove());
+                        new ReplyKeyboardRemove());
                 }
                 else
                 {
                     await _sendMessege("There is already a reservation at that time. Maybe you can join them))",
-                                 new ReplyKeyboardRemove());
+                        new ReplyKeyboardRemove());
                 }
+
                 var md = new MainMenuDialogue(_sendMessege);
                 await md.OnMessage(args);
                 return md;

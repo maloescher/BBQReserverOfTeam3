@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using BBQReserverBot;
 using BBQReserverBot.Dialogues;
@@ -26,6 +28,10 @@ namespace BBQTests
             AddRecord(record);
         }
         
+        /// <summary>
+        ///   US002 Tests on UseCase creation of record
+        /// </summary>
+        
         [Test]
         public void CreateRecord()
         {
@@ -39,7 +45,7 @@ namespace BBQTests
         }
         
         [Test]
-        public void CreateOverlappingRecord()
+        public void tryToCreateOverlappingRecord()
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -51,13 +57,64 @@ namespace BBQTests
 
             var user2 = new User();
             user2.Id = 2;
+            CreateRecordWithDialogueClass(user2, "2", "September", "18:00", "22:00");
+
+            var records = Schedule.Records;
             
             Assert.AreEqual(size + 1, Schedule.Records.Count); // Not +2 as we expect not to write into Schedule
             StringAssert.AreEqualIgnoringCase("2019-09-02 19:00:00",
-                Schedule.Records[0].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
         
+        /// <summary>
+        ///   US005 Tests on UseCase to view all reservations
+        /// </summary>
+
         [Test]
+        public void checkScheduleSingleUser()
+        {
+            var user = new User();
+            user.Id = 1;
+            var size = Schedule.Records.Count;
+            var recordCount = (from record in Schedule.Records where record.User.Id == 1 select record).Count();
+
+            CreateRecordWithDialogueClass(user, "3", "September", "19:00", "22:00");
+            CreateRecordWithDialogueClass(user, "3", "September", "12:00", "13:00");
+            CreateRecordWithDialogueClass(user, "3", "September", "10:00", "12:00");
+            CreateRecordWithDialogueClass(user, "3", "September", "13:00", "17:00");
+            CreateRecordWithDialogueClass(user, "3", "September", "17:00", "19:00");
+            Assert.AreEqual(size + 5, Schedule.Records.Count);
+            var records = from record in Schedule.Records where record.User.Id == 1 select record;
+            Assert.AreEqual(recordCount+ 5, records.Count());
+            
+            CreateRecordWithDialogueClass(user, "3", "September", "16:00", "20:00");
+            Assert.AreEqual(size + 5, Schedule.Records.Count);
+            records = from record in Schedule.Records where record.User.Id == 1 select record;
+            Assert.AreEqual(recordCount+ 5, records.Count());
+        }
+
+        [Test]
+        public void checkScheduleMultipleWithOverlap()
+        {
+            Schedule.Records = new List<Record>();
+            var user = new User();
+            user.Id = 1;
+            var size = Schedule.Records.Count;
+            CreateRecordWithDialogueClass(user, "4", "September", "19:00", "22:00");
+            
+            var user2 = new User();
+            user2.Id = 2;
+            CreateRecordWithDialogueClass(user, "4", "September", "18:00", "20:00");
+            
+            var records1 = from record in Schedule.Records where record.User.Id == 1 select record;
+            var records2 = from record in Schedule.Records where record.User.Id == 2 select record;
+
+            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            Assert.AreEqual(1, records1.Count());
+            Assert.AreEqual(0, records2.Count());
+        }
+        
+        /*[Test]
         public void UpdateRecord()
         {
             var user = new User();
@@ -71,7 +128,7 @@ namespace BBQTests
             CreateRecordWithDialogueClass(user, "1", "August", "18:00", "22:00");
             Assert.AreEqual(size + 1, Schedule.Records.Count);
             StringAssert.AreEqualIgnoringCase("2019-08-01 18:00:00", Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        }
+        }*/
         
         private void AddRecord(Record record)
         {
