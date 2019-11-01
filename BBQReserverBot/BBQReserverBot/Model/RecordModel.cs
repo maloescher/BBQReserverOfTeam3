@@ -59,6 +59,16 @@ namespace BBQReserverBot.Model
             }
         }
 
+        public static Record findRecordByUserString(string text)
+        {
+            foreach (var record in Schedule.Records)
+            {
+                if (text.Equals(record.FromTime.ToString("dd MMMM, HH:mm") + "—" + record.ToTime.Hour + ":00"))
+                    return record;
+            }
+            return null;
+        }
+
         private static bool CheckForTimeIntersections(Record newRecord)
         {
             var intersections = from records in Schedule.Records

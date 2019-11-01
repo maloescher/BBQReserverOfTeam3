@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -106,6 +105,10 @@ namespace BBQTests
             Assert.AreEqual(0, records2.Count());
         }
         
+        /// <summary>
+        ///   US001 Tests on UseCase to update a reservation
+        /// </summary>
+        
         [Test]
         public void UpdateRecordInModel()
         {
@@ -123,6 +126,10 @@ namespace BBQTests
             StringAssert.AreEqualIgnoringCase("2019-08-01 18:00:00", Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
+        /// <summary>
+        ///  US003 Tests on UseCase to delete a record
+        /// </summary>
+        
         [Test]
         public void DeleteRecordFromModel()
         {
@@ -133,6 +140,29 @@ namespace BBQTests
             RecordModel.deleteRecord(Schedule.Records[size]);
             Assert.AreEqual(size, Schedule.Records.Count);
 
+        }
+
+        [Test]
+        public void RecordFromUserString()
+        {
+            var user = new User();
+            var record = RecordModel.createRecord(user, 3, 8, 19, 22);
+            TestFindRecordFromUserString(record);
+            TestFindRecordFromUserString(RecordModel.createRecord(user, 3, 8, 17, 19));
+        }
+
+        private void TestFindRecordFromUserString(Record testRecord)
+        {
+            var size = Schedule.Records.Count;
+            var text = testRecord.FromTime.ToString("dd MMMM, HH:mm") + "—" + testRecord.ToTime.Hour + ":00";
+            CreateRecordWithDialogueClass(testRecord.User, testRecord.FromTime.ToString("dd"),
+                testRecord.FromTime.ToString("MMMM"), testRecord.FromTime.ToString("HH:mm"),
+                testRecord.ToTime.ToString("HH:mm"));
+            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            var record = RecordModel.findRecordByUserString(text);
+            Assert.NotNull(record);
+            StringAssert.AreEqualIgnoringCase(text,
+                record.FromTime.ToString("dd MMMM, HH:mm") + "—" + record.ToTime.Hour + ":00");
         }
 
         private static void CreateRecordWithDialogueClass(User user, string day, string month, string startTime, string endTime)

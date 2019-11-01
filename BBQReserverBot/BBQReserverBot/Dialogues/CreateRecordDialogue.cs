@@ -1,5 +1,4 @@
 ﻿using BBQReserverBot.Model;
-using BBQReserverBot.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,12 +60,12 @@ namespace BBQReserverBot.Dialogues
             CurrentState = State.Month;
         }
 
-        private readonly Dictionary<string, int> Times = Enumerable
+        public static readonly Dictionary<string, int> Times = Enumerable
             .Range(8, 15)
             .ToDictionary(x => String.Concat(x, ":00"),
                 x => x);
 
-        private ReplyKeyboardMarkup MakeTimeKeyboard()
+        public static ReplyKeyboardMarkup MakeTimeKeyboard()
         {
             return (ReplyKeyboardMarkup)
                 Times
