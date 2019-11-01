@@ -1,7 +1,7 @@
 ﻿using BBQReserverBot.Model;
+using BBQReserverBot.Model.Entities;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Args;
@@ -22,7 +22,7 @@ namespace BBQReserverBot.Dialogues
         private State CurrentState;
 
 
-        private Dictionary<string, int> Months = new Dictionary<string, int>()
+        private readonly Dictionary<string, int> Months = new Dictionary<string, int>()
         {
             {"January", 1},
             {"February", 2},
@@ -38,13 +38,13 @@ namespace BBQReserverBot.Dialogues
             {"December", 12}
         };
 
-        private Dictionary<string, bool> Approves = new Dictionary<string, bool>()
+        private readonly Dictionary<string, bool> Approves = new Dictionary<string, bool>()
         {
             {"Approve", true},
             {"I've changed my mind", false}
         };
 
-        enum State
+        private enum State
         {
             Month,
             Day,
@@ -61,7 +61,7 @@ namespace BBQReserverBot.Dialogues
             CurrentState = State.Month;
         }
 
-        private Dictionary<string, int> Times = Enumerable
+        private readonly Dictionary<string, int> Times = Enumerable
             .Range(8, 15)
             .ToDictionary(x => String.Concat(x, ":00"),
                 x => x);
@@ -109,11 +109,9 @@ namespace BBQReserverBot.Dialogues
         public void ProcessMonth(string text)
         {
             var x = Months.ContainsKey(text) ? (int?) Months[text] : null;
-            if (x != null)
-            {
-                SelectedMonth = (int) x;
-                CurrentState = State.Day;
-            }
+            if (x == null) return;
+            SelectedMonth = (int) x;
+            CurrentState = State.Day;
         }
 
         public void ProcessDay(string text)
@@ -121,44 +119,38 @@ namespace BBQReserverBot.Dialogues
             var last = DateTime.DaysInMonth(DateTime.Now.Year, SelectedMonth);
             var x = 0;
             Int32.TryParse(text, out x);
-            if (x >= 1 && x <= last)
-            {
-                SelectedDay = x;
-                CurrentState = State.Start;
-            }
+            if (x < 1 || x > last) return;
+            SelectedDay = x;
+            CurrentState = State.Start;
         }
 
         public void ProcessTime(string text, bool isStart)
         {
             var x = Times.ContainsKey(text) ? (int?) Times[text] : null;
-            if (x != null)
+            if (x == null) return;
+            if (isStart)
             {
-                if (isStart)
-                {
-                    SelectedStart = (int) x;
-                    CurrentState = State.End;
-                }
-                else
-                {
-                    SelectedEnd = (int) x;
-                    CurrentState = State.Approve;
-                }
+                SelectedStart = (int) x;
+                CurrentState = State.End;
+            }
+            else
+            {
+                SelectedEnd = (int) x;
+                CurrentState = State.Approve;
             }
         }
 
         public void ProcessApprove(string text)
         {
             var x = Approves.ContainsKey(text) ? (bool?) Approves[text] : null;
-            if (x != null)
-            {
-                SelectedApproved = (bool) x;
-                CurrentState = SelectedApproved ? State.Success : State.Fail;
-            }
+            if (x == null) return;
+            SelectedApproved = (bool) x;
+            CurrentState = SelectedApproved ? State.Success : State.Fail;
         }
 
-        public void Process(MessageEventArgs args)
+        private void Process(MessageEventArgs args)
         {
-            string text = args.Message.Text;
+            var text = args.Message.Text;
             switch (CurrentState)
             {
                 case (State.Month):
@@ -187,21 +179,11 @@ namespace BBQReserverBot.Dialogues
         }
 
         public bool Create(Telegram.Bot.Types.User user)
-        {
-            try
-            {
-                var record = new Record(user, SelectedDay, SelectedMonth, SelectedStart, SelectedEnd);
-                Schedule.Records.Add(record);
-                return true;
-            }
-            catch (ArgumentException e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
+        { 
+            return RecordModel.createRecord(user, SelectedDay, SelectedMonth, SelectedStart, SelectedEnd, true);
         }
 
-        public async override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
+        public override async Task<AbstractDialogue> OnMessage(MessageEventArgs args)
         {
             Process(args);
 
@@ -226,7 +208,7 @@ namespace BBQReserverBot.Dialogues
 
             if (CurrentState == State.Fail)
             {
-                await _sendMessege("Ok!)", new ReplyKeyboardRemove());
+                await _sendMessege("Something went wrong!)", new ReplyKeyboardRemove());
                 var md = new MainMenuDialogue(_sendMessege);
                 await md.OnMessage(args);
                 return md;

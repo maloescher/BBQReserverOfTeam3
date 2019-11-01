@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using BBQReserverBot;
 using BBQReserverBot.Dialogues;
 using BBQReserverBot.Model;
+using BBQReserverBot.Model.Entities;
 using Telegram.Bot.Types;
 
 namespace BBQTests
@@ -14,18 +14,6 @@ namespace BBQTests
         [SetUp]
         public void Setup()
         {
-        }
-
-        [Test]
-        public void Test1()
-        {
-            var record = new Record
-            {
-                Id = Guid.NewGuid(),
-                FromTime = new DateTime(DateTime.Now.Year, 12, 02, 18, 0, 0),
-                ToTime = new DateTime(DateTime.Now.Year, 12, 02, 22, 0, 0)
-            };
-            AddRecord(record);
         }
         
         /// <summary>
@@ -93,6 +81,10 @@ namespace BBQTests
             Assert.AreEqual(recordCount+ 5, records.Count());
         }
 
+        /// <summary>
+        ///   General tests
+        /// </summary>
+        
         [Test]
         public void checkScheduleMultipleWithOverlap()
         {
@@ -114,8 +106,8 @@ namespace BBQTests
             Assert.AreEqual(0, records2.Count());
         }
         
-        /*[Test]
-        public void UpdateRecord()
+        [Test]
+        public void UpdateRecordInModel()
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -124,20 +116,26 @@ namespace BBQTests
             Assert.AreEqual(size + 1, Schedule.Records.Count);
             StringAssert.AreEqualIgnoringCase("2019-08-01 19:00:00",
                 Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            RecordModel.updateRecord(Schedule.Records[size], user, 18, 22);
             
-            CreateRecordWithDialogueClass(user, "1", "August", "18:00", "22:00");
             Assert.AreEqual(size + 1, Schedule.Records.Count);
             StringAssert.AreEqualIgnoringCase("2019-08-01 18:00:00", Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        }*/
-        
-        private void AddRecord(Record record)
-        {
-            var size = Schedule.Records.Count;
-            Schedule.Records.Add(record);
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
         }
 
-        private void CreateRecordWithDialogueClass(User user, String day, String month, String startTime, String endTime)
+        [Test]
+        public void DeleteRecordFromModel()
+        {
+            var user = new User();
+            var size = Schedule.Records.Count;
+            CreateRecordWithDialogueClass(user, "2", "August", "19:00", "22:00");
+            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            RecordModel.deleteRecord(Schedule.Records[size]);
+            Assert.AreEqual(size, Schedule.Records.Count);
+
+        }
+
+        private static void CreateRecordWithDialogueClass(User user, string day, string month, string startTime, string endTime)
         {
             var recordCreator = new CreateRecordDialogue(null);
             recordCreator.ProcessMonth(month);
