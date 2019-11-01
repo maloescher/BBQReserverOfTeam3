@@ -28,7 +28,7 @@ namespace BBQReserverBot.Dialogues
             {"March", 3},
             {"April", 4},
             {"May", 5},
-            {"Jun", 6},
+            {"June", 6},
             {"July", 7},
             {"August", 8},
             {"September", 9},
@@ -125,7 +125,7 @@ namespace BBQReserverBot.Dialogues
 
         public void ProcessTime(string text, bool isStart)
         {
-            var x = Times.ContainsKey(text) ? (int?) Times[text] : null;
+            var x = Times.ContainsKey(text) ? (int?) Times[text] : throw new ArgumentOutOfRangeException("Can't start before 8:00 or end after 22:00");
             if (x == null) return;
             if (isStart)
             {
@@ -179,7 +179,7 @@ namespace BBQReserverBot.Dialogues
 
         public bool Create(Telegram.Bot.Types.User user)
         { 
-            return RecordModel.createRecord(user, SelectedDay, SelectedMonth, SelectedStart, SelectedEnd, true);
+            return RecordModel.CreateRecord(user, SelectedDay, SelectedMonth, SelectedStart, SelectedEnd, true);
         }
 
         public override async Task<AbstractDialogue> OnMessage(MessageEventArgs args)

@@ -27,17 +27,19 @@ namespace BBQReserverBot.Dialogues
 
         private async Task<AbstractDialogue> messageHandler(MessageEventArgs args)
         {
+            var text = args.Message.Text;
+            var userId = args.Message.From.Id;
             switch (_state)
             {
                 case 1:
-                    AskForRecord(args);
+                    AskForRecord(userId);
                     _state++;
                     break;
                 case 2:
-                    _record = RecordModel.findRecordByUserString(args.Message.Text);
+                    _record = RecordModel.FindRecordByUserString(text);
                     if (_record == null)
                     {
-                        AskForRecord(args);
+                        AskForRecord(userId);
                         break;
                     }
                     AskForOption();
@@ -45,17 +47,17 @@ namespace BBQReserverBot.Dialogues
                     break;
                 case 3:
                     _state++;
-                    if (Operate(args))
+                    if (Operate(text))
                         await _sendMessege("Deletion successful", new ReplyKeyboardRemove());
                     break;
                 case 4:
                     ProcessTime(args.Message.Text, true);
-                    getUpdatedTimes("Select the time when you want to finish");
+                    GetUpdatedTimes("Select the time when you want to finish");
                     _state++;
                     break;
                 case 5:
                     ProcessTime(args.Message.Text, false);
-                    if (RecordModel.updateRecord(_record, _record.User, _updateStart, _updateStop))
+                    if (RecordModel.UpdateRecord(_record, _record.User, _updateStart, _updateStop))
                         await _sendMessege("Update successful", new ReplyKeyboardRemove());
                     _state = 99;
                     break;
@@ -70,9 +72,9 @@ namespace BBQReserverBot.Dialogues
             return this;
         }
 
-        private async void AskForRecord(MessageEventArgs args)
+        internal async void AskForRecord(int userId)
         {
-            var records = from record in Schedule.Records where record.User.Id == args.Message.From.Id select record;
+            var records = from record in Schedule.Records where record.User.Id == userId select record;
             await _sendMessege("Select one of your reservations to update or delete:",
                 (ReplyKeyboardMarkup)
                 records
@@ -90,23 +92,23 @@ namespace BBQReserverBot.Dialogues
             await _sendMessege("Do you want to update or to delete your entry?", markup);
         }
 
-        private bool Operate(MessageEventArgs args)
+        private bool Operate(string text)
         {
-            if (args.Message.Text.Equals("Delete"))
+            if (text.Equals("Delete"))
             {
-                RecordModel.deleteRecord(_record);
+                RecordModel.DeleteRecord(_record);
                 _state = 99;
                 return true;
             }
-            if (args.Message.Text.Equals("Update"))
+            if (text.Equals("Update"))
             {
-                getUpdatedTimes("Select the time when you want to start");
+                GetUpdatedTimes("Select the time when you want to start");
                 return false;
             }
             return false;
         }
 
-        private async void getUpdatedTimes(string text)
+        private async void GetUpdatedTimes(string text)
         {
             await _sendMessege(text, (IReplyMarkup)
                CreateRecordDialogue.MakeTimeKeyboard());
