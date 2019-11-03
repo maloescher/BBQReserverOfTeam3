@@ -210,10 +210,17 @@ namespace BBQTests
             recordCreator.ProcessApprove("Approve");
             recordCreator.Create(user);
         }
+        static object[] dateObject =
+        {
+            new object[] { "1", "August", "19:00", "22:00" },
+            new object[] { "2", "August", "19:00", "22:00" },
+            new object[] { DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00" }
+        };
         
         [TestCase("1", "April", "19:00", "22:00")] 
         [TestCase("2", "April", "19:00", "22:00")] 
-        [TestCase("3", "April", "19:00", "22:00")] 
+        [TestCase("3", "April", "19:00", "22:00")]
+        [Test, TestCaseSource("dateObject")]
         public static void CreateRecordWithDialogueClassPut(string day, string month, string startTime,
             string endTime)
         {
