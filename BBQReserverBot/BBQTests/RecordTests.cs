@@ -16,6 +16,12 @@ namespace BBQTests
         {
         }
 
+        [TearDown]
+        public void afterEach()
+        {
+            Schedule.Records.Clear();
+        }
+
         /// <summary>
         ///   US002 Tests on UseCase creation of record
         /// </summary>
@@ -28,6 +34,19 @@ namespace BBQTests
 
             Assert.AreEqual(size + 1, Schedule.Records.Count);
             StringAssert.AreEqualIgnoringCase("2019-09-01 19:00:00",
+                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+        }
+        
+        //todo probably a bug here
+        [Test]
+        public void CreateRecordEarlier()
+        {
+            var user = new User();
+            var size = Schedule.Records.Count;
+            CreateRecordWithDialogueClass(user, "3", "November", "8:00", "10:00");
+
+            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            StringAssert.AreEqualIgnoringCase("2019-11-03 08:00:00",
                 Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
@@ -45,17 +64,10 @@ namespace BBQTests
             Assert.AreEqual(size, Schedule.Records.Count);
         }
 
-        [Test]
-        public void CreateSomeRecords()
-        {
-            CreateNRecords(30, 5);
-            CreateNRecords(600, 6);
-            CreateNRecords(65, 4);
-            Schedule.Records = new List<Record>();
-        }
-
-
-        private void CreateNRecords(int count, int month)
+        [TestCase(30, 5)]
+        [TestCase(600, 6)]
+        [TestCase(65, 4)]
+        public void CreateNRecords(int count, int month)
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -130,7 +142,6 @@ namespace BBQTests
         [Test]
         public void CheckScheduleMultipleWithOverlap()
         {
-            Schedule.Records = new List<Record>();
             var user = new User();
             user.Id = 1;
             var size = Schedule.Records.Count;
@@ -209,6 +220,29 @@ namespace BBQTests
         private static void CreateRecordWithDialogueClass(User user, string day, string month, string startTime,
             string endTime)
         {
+            var recordCreator = new CreateRecordDialogue(null);
+            recordCreator.ProcessMonth(month);
+            recordCreator.ProcessDay(day);
+            recordCreator.ProcessTime(startTime, true);
+            recordCreator.ProcessTime(endTime, false);
+            recordCreator.ProcessApprove("Approve");
+            recordCreator.Create(user);
+        }
+        static object[] dateObject =
+        {
+            new object[] { "1", "August", "19:00", "22:00" },
+            new object[] { "2", "August", "19:00", "22:00" },
+            new object[] { DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00" }
+        };
+        
+        [TestCase("1", "April", "19:00", "22:00")] 
+        [TestCase("2", "April", "19:00", "22:00")] 
+        [TestCase("3", "April", "19:00", "22:00")]
+        [Test, TestCaseSource("dateObject")]
+        public static void CreateRecordWithDialogueClassPut(string day, string month, string startTime,
+            string endTime)
+        {
+            var user = new User();
             var recordCreator = new CreateRecordDialogue(null);
             recordCreator.ProcessMonth(month);
             recordCreator.ProcessDay(day);
