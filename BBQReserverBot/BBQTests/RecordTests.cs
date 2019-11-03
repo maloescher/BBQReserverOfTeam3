@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 using BBQReserverBot.Dialogues;
 using BBQReserverBot.Model;
@@ -112,71 +113,133 @@ namespace BBQTests
             StringAssert.AreEqualIgnoringCase("2019-09-02 19:00:00",
                 Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
-
+        
         /// <summary>
         ///   US005 Tests on UseCase to view all reservations
         /// </summary>
-        [Test]
-        public void CheckScheduleSingleUser()
+        static object[] singleUserRecords =
         {
-            var user = new User();
-            user.Id = 1;
-            var size = Schedule.Records.Count;
-            var recordCount = (from record in Schedule.Records where record.User.Id == 1 select record).Count();
-
-            CreateRecordWithDialogueClass(user, "3", "September", "19:00", "22:00");
-            CreateRecordWithDialogueClass(user, "3", "September", "12:00", "13:00");
-            CreateRecordWithDialogueClass(user, "3", "September", "10:00", "12:00");
-            CreateRecordWithDialogueClass(user, "3", "September", "13:00", "17:00");
-            CreateRecordWithDialogueClass(user, "3", "September", "17:00", "19:00");
-            Assert.AreEqual(size + 5, Schedule.Records.Count);
-            var records = from record in Schedule.Records where record.User.Id == 1 select record;
-            Assert.AreEqual(recordCount + 5, records.Count());
-
-            CreateRecordWithDialogueClass(user, "3", "September", "16:00", "20:00");
-            Assert.AreEqual(size + 5, Schedule.Records.Count);
-            records = from record in Schedule.Records where record.User.Id == 1 select record;
-            Assert.AreEqual(recordCount + 5, records.Count());
-        }
+            new object[] {
+                new User(),
+                1,
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "10:00", "12:00" ),
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "12:00", "13:00" )
+            }
+        };
         
-        [Test]
-        public void CheckScheduleMultipleWithOverlap()
+        [TestCase, TestCaseSource("singleUserRecords")]
+        public void CheckScheduleSingleUser(User user, int userId, TestRecord firstRecord, TestRecord secondRecord)
         {
-            var user = new User();
-            user.Id = 1;
+            user.Id = userId;
+            firstRecord.setUser(user);
+            secondRecord.setUser(user);
             var size = Schedule.Records.Count;
-            CreateRecordWithDialogueClass(user, "4", "September", "19:00", "22:00");
+            var userRecordCount = (from record in Schedule.Records where record.User.Id == userId select record).Count();
+            
+            CreateRecordWithDialogueClass(firstRecord);
+            CreateRecordWithDialogueClass(secondRecord);
+            Assert.AreEqual(size + 2, Schedule.Records.Count);
+            var userSchedule = from record in Schedule.Records where record.User.Id == userId select record;
+            Assert.AreEqual(userRecordCount + 2, userSchedule.Count());
+        }
 
-            var user2 = new User();
-            user2.Id = 2;
-            CreateRecordWithDialogueClass(user, "4", "September", "18:00", "20:00");
+        static object[] multipleUserRecords =
+        {
+            new object[] {
+                new User(),
+                1,
+                new User(),
+                2,
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00" ),
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "18:00", "20:00" )
+            }
+        };
+        
+        [TestCase, TestCaseSource("multipleUserRecords")]
+        public void CheckOverlapScheduleForMultipleUsers(User firstUser, int firstId, User secondUser, int secondId, TestRecord firstRecord, TestRecord secondRecord)
+        {
+            firstUser.Id = firstId;
+            var size = Schedule.Records.Count;
+            firstRecord.setUser(firstUser);
+            CreateRecordWithDialogueClass(firstRecord);
+            
+            secondUser.Id = secondId;
+            secondRecord.setUser(secondUser);
+            CreateRecordWithDialogueClass(secondRecord);
 
-            var records1 = from record in Schedule.Records where record.User.Id == 1 select record;
-            var records2 = from record in Schedule.Records where record.User.Id == 2 select record;
+            var firstUserSchedule = from record in Schedule.Records where record.User.Id == firstId select record;
+            var secondUserSchedule = from record in Schedule.Records where record.User.Id == secondId select record;
 
             Assert.AreEqual(size + 1, Schedule.Records.Count);
-            Assert.AreEqual(1, records1.Count());
-            Assert.AreEqual(0, records2.Count());
+            Assert.AreEqual(1, firstUserSchedule.Count());
+            Assert.AreEqual(0, secondUserSchedule.Count());
         }
 
         /// <summary>
         ///   US001 Tests on UseCase to update a reservation
         /// </summary>
-        [Test]
-        public void UpdateRecordInModel()
+        static object[] modelRecord =
         {
-            var user = new User();
+            new object[] {
+                new User(),
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00" ),
+                DateTime.Now.ToString("yyyy-MM-dd"),
+                18,
+                22
+            }
+        };
+        
+        [TestCase, TestCaseSource("modelRecord")]
+        public void UpdateRecordInModel(User user, TestRecord record, String recordDate, int newStartTime, int newEndTime)
+        {
             var size = Schedule.Records.Count;
-            CreateRecordWithDialogueClass(user, "1", "August", "19:00", "22:00");
-
+            record.setUser(user);
+            
+            CreateRecordWithDialogueClass(record);
             Assert.AreEqual(size + 1, Schedule.Records.Count);
-            StringAssert.AreEqualIgnoringCase("2019-08-01 19:00:00",
+            
+            StringAssert.AreEqualIgnoringCase(recordDate + " " + record.startTime + ":00",
                 Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
-            RecordModel.UpdateRecord(Schedule.Records[size], user, 18, 22);
+            RecordModel.UpdateRecord(Schedule.Records[size], user, newStartTime, newEndTime);
 
             Assert.AreEqual(size + 1, Schedule.Records.Count);
-            StringAssert.AreEqualIgnoringCase("2019-08-01 18:00:00",
+            
+            StringAssert.AreEqualIgnoringCase(recordDate + " " + newStartTime + ":00:00",
+                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+        }
+        
+        static object[] modelRecordWithOverlap =
+        {
+            new object[] {
+                new User(),
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00" ),
+                new TestRecord ( DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "11:00", "12:00" ),
+                DateTime.Now.ToString("yyyy-MM-dd"),
+                11,
+                14
+            }
+        };
+        
+        [TestCase, TestCaseSource("modelRecordWithOverlap")]
+        public void UpdateRecordInModelWithOverlap(User user, TestRecord firstRecord, TestRecord secondRecord, String recordDate, int newStartTime, int newEndTime)
+        {
+            var size = Schedule.Records.Count;
+            firstRecord.setUser(user);
+            secondRecord.setUser(user);
+            
+            CreateRecordWithDialogueClass(firstRecord);
+            CreateRecordWithDialogueClass(secondRecord);
+            Assert.AreEqual(size + 2, Schedule.Records.Count);
+            
+            StringAssert.AreEqualIgnoringCase(recordDate + " " + firstRecord.startTime + ":00",
+                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            RecordModel.UpdateRecord(Schedule.Records[size], user, newStartTime, newEndTime);
+
+            Assert.AreEqual(size + 2, Schedule.Records.Count);
+            
+            StringAssert.AreNotEqualIgnoringCase(recordDate + " " + newStartTime + ":00:00",
                 Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
@@ -228,6 +291,18 @@ namespace BBQTests
             recordCreator.ProcessApprove("Approve");
             recordCreator.Create(user);
         }
+        
+        private static void CreateRecordWithDialogueClass(TestRecord testRecord)
+        {
+            var recordCreator = new CreateRecordDialogue(null);
+            recordCreator.ProcessMonth(testRecord.month);
+            recordCreator.ProcessDay(testRecord.day);
+            recordCreator.ProcessTime(testRecord.startTime, true);
+            recordCreator.ProcessTime(testRecord.endTime, false);
+            recordCreator.ProcessApprove("Approve");
+            recordCreator.Create(testRecord.user);
+        }
+
         static object[] dateObject =
         {
             new object[] { "1", "August", "19:00", "22:00" },
@@ -250,6 +325,28 @@ namespace BBQTests
             recordCreator.ProcessTime(endTime, false);
             recordCreator.ProcessApprove("Approve");
             recordCreator.Create(user);
+        }
+        
+        public class TestRecord
+        {
+            public User user;
+            public string day;
+            public string month;
+            public string startTime;
+            public string endTime;
+            public TestRecord(string day, string month, string startTime,
+                string endTime)
+            {
+                this.day = day;
+                this.month = month;
+                this.startTime = startTime;
+                this.endTime = endTime;
+            }
+
+            public void setUser(User user)
+            {
+                this.user = user;
+            }
         }
     }
 }
