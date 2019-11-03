@@ -144,10 +144,10 @@ namespace BBQTests
                 1,
                 new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "10:00", "12:00"),
                 new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "12:00", "13:00")
-            }
+            },
         };
 
-        [TestCase, TestCaseSource("singleUserRecords")]
+        [Test, TestCaseSource("singleUserRecords")]
         public void CheckScheduleSingleUser(User user, int userId, TestRecord firstRecord, TestRecord secondRecord)
         {
             user.Id = userId;
@@ -168,34 +168,38 @@ namespace BBQTests
         {
             new object[]
             {
-                new User(),
-                1,
-                new User(),
-                2,
+                new User(), 1,
+                new User(), 2,
                 new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00"),
                 new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "18:00", "20:00")
-            }
+            },
         };
 
-        [TestCase, TestCaseSource("multipleUserRecords")]
+        [Test, TestCaseSource("multipleUserRecords")]
         public void CheckOverlapScheduleForMultipleUsers(User firstUser, int firstId, User secondUser, int secondId,
             TestRecord firstRecord, TestRecord secondRecord)
         {
             firstUser.Id = firstId;
             var size = Schedule.Records.Count;
             firstRecord.SetUser(firstUser);
+            
+            var firstUserSchedule = from record in Schedule.Records where record.User.Id == firstId select record;
+            var secondUserSchedule = from record in Schedule.Records where record.User.Id == secondId select record;
+            var firstUserSize = firstUserSchedule.Count();
+            var secondUserSize = secondUserSchedule.Count();
+            
             CreateRecordWithDialogueClass(firstRecord);
 
             secondUser.Id = secondId;
             secondRecord.SetUser(secondUser);
             CreateRecordWithDialogueClass(secondRecord);
-
-            var firstUserSchedule = from record in Schedule.Records where record.User.Id == firstId select record;
-            var secondUserSchedule = from record in Schedule.Records where record.User.Id == secondId select record;
+            
+            firstUserSchedule = from record in Schedule.Records where record.User.Id == firstId select record;
+            secondUserSchedule = from record in Schedule.Records where record.User.Id == secondId select record;
 
             Assert.AreEqual(size + 1, Schedule.Records.Count);
-            Assert.AreEqual(1, firstUserSchedule.Count());
-            Assert.AreEqual(0, secondUserSchedule.Count());
+            Assert.AreEqual(firstUserSize+1, firstUserSchedule.Count());
+            Assert.AreEqual(secondUserSize, secondUserSchedule.Count());
         }
 
         /// <summary>
@@ -213,7 +217,7 @@ namespace BBQTests
             }
         };
 
-        [TestCase, TestCaseSource("modelRecord")]
+        [Test, TestCaseSource("modelRecord")]
         public void UpdateRecordInModel(User user, TestRecord record, String recordDate, int newStartTime,
             int newEndTime)
         {
@@ -247,7 +251,7 @@ namespace BBQTests
             }
         };
 
-        [TestCase, TestCaseSource("modelRecordWithOverlap")]
+        [Test, TestCaseSource("modelRecordWithOverlap")]
         public void UpdateRecordInModelWithOverlap(User user, TestRecord firstRecord, TestRecord secondRecord,
             String recordDate, int newStartTime, int newEndTime)
         {
