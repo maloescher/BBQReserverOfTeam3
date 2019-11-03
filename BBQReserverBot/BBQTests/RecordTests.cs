@@ -261,38 +261,78 @@ namespace BBQTests
         /// <summary>
         ///  US003 Tests on UseCase to delete a record
         /// </summary>
-        [Test]
-        public void DeleteRecordFromModel()
+        static object[] deletRecordTestObjects =
         {
-            var user = new User();
-            var size = Schedule.Records.Count;
-            CreateRecordWithDialogueClass(user, "2", "August", "19:00", "22:00");
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
-            RecordModel.DeleteRecord(Schedule.Records[size]);
-            Assert.AreEqual(size, Schedule.Records.Count);
+            new object[] {new User(), 3, 8, 19, 22, true},
+            new object[] {new User(), 3, 8, 19, 22, false},
+        };
+
+        [Test, TestCaseSource("deletRecordTestObjects")]
+        public void DeleteRecordTest(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd, bool exist)
+        {
+            var size = Schedule.Records.Count;            
+            var record = new Record(user, selectedDay, selectedMonth, selectedStart, selectedEnd);
+            
+            //Record is exist or not
+            if (exist)
+            {
+                //Add record
+                RecordModel.CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd, exist);
+                Assert.AreEqual(size + 1, Schedule.Records.Count);
+                
+                //Select record from Record List
+                var selectedRecord =
+                    RecordModel.FindRecordByUserString(record.FromTime.ToString("dd MMMM, HH:mm") + "—" +
+                                                       record.ToTime.Hour + ":00");
+                
+                //Delete selected record
+                RecordModel.DeleteRecord(selectedRecord);
+                Assert.AreEqual(size, Schedule.Records.Count);
+            }
+            else
+            {
+                //Select record from Record List
+                var selectedRecord =
+                    RecordModel.FindRecordByUserString(record.FromTime.ToString("dd MMMM, HH:mm") + "—" +
+                                                       record.ToTime.Hour + ":00");
+                //Delete non-exist record
+                RecordModel.DeleteRecord(selectedRecord);
+                Assert.AreEqual(size, Schedule.Records.Count);   
+            }
         }
 
-        [Test]
-        public void RecordFromUserString()
+        static object[] findRecordTestObjects =
         {
-            var user = new User();
-            var record = RecordModel.CreateRecord(user, 3, 8, 19, 22);
-            TestFindRecordFromUserString(record);
-            TestFindRecordFromUserString(RecordModel.CreateRecord(user, 3, 8, 17, 19));
-        }
-
-        private void TestFindRecordFromUserString(Record testRecord)
+            new object[] {new User(), 3, 8, 19, 22, true},
+            new object[] {new User(), 3, 8, 19, 22, false},
+            new object[] {new User(), 4, 8, 19, 22, false},
+            new object[] {new User(), 4, 8, 19, 22, true},
+        };
+        [Test, TestCaseSource("findRecordTestObjects")]
+        public void FindRecordTest(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd, bool exist)
         {
-            var size = Schedule.Records.Count;
+            var size = Schedule.Records.Count;            
+            var testRecord = new Record(user, selectedDay, selectedMonth, selectedStart, selectedEnd);
             var text = testRecord.FromTime.ToString("dd MMMM, HH:mm") + "—" + testRecord.ToTime.Hour + ":00";
-            CreateRecordWithDialogueClass(testRecord.User, testRecord.FromTime.ToString("dd"),
-                testRecord.FromTime.ToString("MMMM"), testRecord.FromTime.ToString("HH:mm"),
-                testRecord.ToTime.ToString("HH:mm"));
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
-            var record = RecordModel.FindRecordByUserString(text);
-            Assert.NotNull(record);
-            StringAssert.AreEqualIgnoringCase(text,
-                record.FromTime.ToString("dd MMMM, HH:mm") + "—" + record.ToTime.Hour + ":00");
+            
+            //Record is exist or not
+            if (exist)
+            {
+                //Add record
+                RecordModel.CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd, exist);
+                Assert.AreEqual(size + 1, Schedule.Records.Count);
+                
+                //Select record from Record List
+                var record = RecordModel.FindRecordByUserString(text);
+                Assert.NotNull(record);
+                StringAssert.AreEqualIgnoringCase(text,
+                    record.FromTime.ToString("dd MMMM, HH:mm") + "—" + record.ToTime.Hour + ":00");
+            }
+            else
+            {
+                var record = RecordModel.FindRecordByUserString(text);
+                Assert.Null(record);   
+            }
         }
 
         private static void CreateRecordWithDialogueClass(User user, string day, string month, string startTime,
