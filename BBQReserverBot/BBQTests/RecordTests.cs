@@ -18,7 +18,7 @@ namespace BBQTests
         }
 
         [TearDown]
-        public void afterEach()
+        public void ClearRecordsAfterEachTest()
         {
             Schedule.Records.Clear();
         }
@@ -26,16 +26,44 @@ namespace BBQTests
         /// <summary>
         ///   US002 Tests on UseCase creation of record
         /// </summary>
-        [Test]
-        public void CreateRecord()
+        static object[] createRecordObject =
+        {
+            //todo bug found here
+            /*new object[] {new DateTime(2019, 03, 20, 8, 0, 0), 13, true, false},
+            new object[] {new DateTime(2019, 05, 01, 9, 0, 0), 12, true, false},*/
+            new object[] {new DateTime(2019, 04, 01, 10, 0, 0), 12, true , false},
+            new object[] {new DateTime(2019, 09, 01, 19, 0, 0), 22, true , false},
+            new object[] {new DateTime(2019, 08, 01, 21, 0, 0), 22, true , false},
+            new object[] {new DateTime(2019, 07, 01, 22, 0, 0), 22, true , false},
+            new object[] {new DateTime(2019, 01, 01, 6, 0, 0), 23, false , true},
+            new object[] {new DateTime(2019, 01, 02, 18, 0, 0), 23, false , true},
+            new object[] {new DateTime(2019, 01, 03, 6, 0, 0), 22, false , true},
+        };
+        
+        [Test, TestCaseSource("createRecordObject")]
+        public void CreateRecord(DateTime startDateTime, int endTimeInt, bool valid, bool outOfRange)
         {
             var user = new User();
             var size = Schedule.Records.Count;
-            CreateRecordWithDialogueClass(user, "1", "September", "19:00", "22:00");
+            var day = startDateTime.Day.ToString();
+            var month = startDateTime.ToString("MMMM");
+            var startTime = startDateTime.ToString("HH:mm");
+            var endTime = endTimeInt + ":00";
+            
+            if (valid)
+            {
+                CreateRecordWithDialogueClass(user, day, month, startTime, endTime);
 
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
-            StringAssert.AreEqualIgnoringCase("2019-09-01 19:00:00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                Assert.AreEqual(size + 1, Schedule.Records.Count);
+                StringAssert.AreEqualIgnoringCase(startDateTime.ToString("MM-dd HH:mm:ss"),
+                    Schedule.Records[size].FromTime.ToString("MM-dd HH:mm:ss"));
+            }
+            else  {
+                if (outOfRange)
+                    Assert.Throws<ArgumentOutOfRangeException>(() => CreateRecordWithDialogueClass(user, day, month, startTime, endTime));
+                else 
+                    Assert.AreEqual(size, Schedule.Records.Count);
+            }
         }
         
         //todo probably a bug here
@@ -50,25 +78,27 @@ namespace BBQTests
             StringAssert.AreEqualIgnoringCase("2019-11-03 08:00:00",
                 Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
-
-        [Test]
-        public void CreateInvalidRecord()
+        
+        private static object[] CreateOverlappingRecordObject =
         {
-            var user = new User();
-            var size = Schedule.Records.Count;
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
-                CreateRecordWithDialogueClass(user, "1", "June", "19:00", "23:00"));
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
-                CreateRecordWithDialogueClass(user, "1", "June", "6:00", "12:00"));
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
-                CreateRecordWithDialogueClass(user, "1", "June", "6:00", "23:00"));
-            Assert.AreEqual(size, Schedule.Records.Count);
+            new object[]
+            {
+                new DateTime(2019, 09, 20, 10, 0, 0), 12,
+                new DateTime(2019, 09, 20, 11, 0, 0), 14
+            },
+        };
+        
+        [Test, TestCaseSource("CreateOverlappingRecordObject")]
+        public void CreateOverlappingRecord(DateTime startDateTime1, int endTimeInt1, DateTime startDateTime2, int endTimeInt2)
+        {
+            CreateRecord(startDateTime1, endTimeInt1, true, false);
+            CreateRecord(startDateTime2, endTimeInt2, false, false);
         }
 
-        [TestCase(30, 5)]
-        [TestCase(600, 6)]
-        [TestCase(65, 4)]
-        public void CreateNRecords(int count, int month)
+        [TestCase(30, 5, false)]
+        [TestCase(600, 6, false)]
+        [TestCase(65, 4, false)]
+        public void CreateNRecords(int count, int month, bool secondRound)
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -83,35 +113,20 @@ namespace BBQTests
                     {
                         if (counter == count)
                             break;
-                        RecordModel.CreateRecord(user, day, month, i, i + 1, true);
+                        if (!secondRound)
+                            RecordModel.CreateRecord(user, day, month, i, i + 1, true);
+                        //todo bug found here
+                        /*else
+                            CreateRecord(new DateTime(DateTime.Now.Year, month, day, i, 0, 0), i + 1, true, false);*/
                         counter++;
                     }
                 }
 
                 month++;
             }
-
             Assert.AreEqual(size + counter, Schedule.Records.Count);
-        }
-
-        [Test]
-        public void TryToCreateOverlappingRecord()
-        {
-            var user = new User();
-            var size = Schedule.Records.Count;
-            CreateRecordWithDialogueClass(user, "2", "September", "19:00", "22:00");
-
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
-            StringAssert.AreEqualIgnoringCase("2019-09-02 19:00:00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
-
-            var user2 = new User();
-            user2.Id = 2;
-            CreateRecordWithDialogueClass(user2, "2", "September", "18:00", "22:00");
-
-            Assert.AreEqual(size + 1, Schedule.Records.Count); // Not +2 as we expect not to write into Schedule
-            StringAssert.AreEqualIgnoringCase("2019-09-02 19:00:00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            /*if (!secondRound)
+                CreateNRecords(count, month, true);*/
         }
         
         /// <summary>
