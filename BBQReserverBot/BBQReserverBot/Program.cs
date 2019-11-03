@@ -40,7 +40,7 @@ namespace BBQReserverBot
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}");
             while (true) { Thread.Sleep(100); }
-            Bot.StopReceiving();
+            //Bot.StopReceiving();
             // CreateWebHostBuilder(args).Build().Run();
         }
 

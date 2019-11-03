@@ -45,17 +45,10 @@ namespace BBQTests
             Assert.AreEqual(size, Schedule.Records.Count);
         }
 
-        [Test]
-        public void CreateSomeRecords()
-        {
-            CreateNRecords(30, 5);
-            CreateNRecords(600, 6);
-            CreateNRecords(65, 4);
-            Schedule.Records = new List<Record>();
-        }
-
-
-        private void CreateNRecords(int count, int month)
+        [TestCase(30, 5)]
+        [TestCase(600, 6)]
+        [TestCase(65, 4)]
+        public void CreateNRecords(int count, int month)
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -209,6 +202,22 @@ namespace BBQTests
         private static void CreateRecordWithDialogueClass(User user, string day, string month, string startTime,
             string endTime)
         {
+            var recordCreator = new CreateRecordDialogue(null);
+            recordCreator.ProcessMonth(month);
+            recordCreator.ProcessDay(day);
+            recordCreator.ProcessTime(startTime, true);
+            recordCreator.ProcessTime(endTime, false);
+            recordCreator.ProcessApprove("Approve");
+            recordCreator.Create(user);
+        }
+        
+        [TestCase("1", "April", "19:00", "22:00")] 
+        [TestCase("2", "April", "19:00", "22:00")] 
+        [TestCase("3", "April", "19:00", "22:00")] 
+        public static void CreateRecordWithDialogueClassPut(string day, string month, string startTime,
+            string endTime)
+        {
+            var user = new User();
             var recordCreator = new CreateRecordDialogue(null);
             recordCreator.ProcessMonth(month);
             recordCreator.ProcessDay(day);

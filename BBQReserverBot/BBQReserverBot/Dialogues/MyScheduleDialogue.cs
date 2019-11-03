@@ -12,7 +12,7 @@ namespace BBQReserverBot.Dialogues
     public class MyScheduleDialogue:AbstractDialogue
     {
         public MyScheduleDialogue(Func<string, IReplyMarkup, Task<bool>> onMessage) : base(onMessage) { }
-        public async override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
+        public override Task<AbstractDialogue> OnMessage(MessageEventArgs args)
         {
             switch(args.Message.Text)
             {
