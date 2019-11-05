@@ -36,7 +36,7 @@ namespace BBQReserverBot.Dialogues
                     _state++;
                     break;
                 case 2:
-                    _record = RecordModel.FindRecordByUserString(text);
+                    _record = RecordModel.FindRecordByUserInputString(text);
                     if (_record == null)
                     {
                         AskForRecord(userId);

@@ -26,22 +26,23 @@ namespace BBQTests
         /// <summary>
         ///   US002 Tests on UseCase creation of record
         /// </summary>
+        /// 
         static object[] createRecordObject =
-        {
+        {    
             //todo bug found here
-            /*new object[] {new DateTime(2019, 03, 20, 8, 0, 0), 13, true, false},
-            new object[] {new DateTime(2019, 05, 01, 9, 0, 0), 12, true, false},*/
-            new object[] {new DateTime(2019, 04, 01, 10, 0, 0), 12, true, false},
-            new object[] {new DateTime(2019, 09, 01, 19, 0, 0), 22, true, false},
-            new object[] {new DateTime(2019, 08, 01, 21, 0, 0), 22, true, false},
-            new object[] {new DateTime(2019, 07, 01, 22, 0, 0), 22, true, false},
-            new object[] {new DateTime(2019, 01, 01, 6, 0, 0), 23, false, true},
-            new object[] {new DateTime(2019, 01, 02, 18, 0, 0), 23, false, true},
-            new object[] {new DateTime(2019, 01, 03, 6, 0, 0), 22, false, true},
+            new object[] {new DateTime(DateTime.Now.Year, 3, 20, 8, 0, 0), 13, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 05, 01, 9, 0, 0), 12, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 10, 0, 0), 12, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 09, 01, 19, 0, 0), 22, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 08, 01, 21, 0, 0), 22, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 07, 01, 22, 0, 0), 22, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 01, 01, 6, 0, 0), 23, false, true},
+            new object[] {new DateTime(DateTime.Now.Year, 01, 02, 18, 0, 0), 23, false, true},
+            new object[] {new DateTime(DateTime.Now.Year, 01, 03, 6, 0, 0), 22, false, true},
         };
 
         [Test, TestCaseSource("createRecordObject")]
-        public void CreateRecord(DateTime startDateTime, int endTimeInt, bool valid, bool outOfRange)
+        public void CreateRecord_AddValidRecord_RefuseInvalidRecord(DateTime startDateTime, int endTimeInt, bool valid, bool outOfRange)
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -68,19 +69,6 @@ namespace BBQTests
             }
         }
 
-        //todo probably a bug here
-        [Test]
-        public void CreateRecordEarlier()
-        {
-            var user = new User();
-            var size = Schedule.Records.Count;
-            CreateRecordWithDialogueClass(user, "3", "November", "8:00", "10:00");
-
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
-            StringAssert.AreEqualIgnoringCase("2019-11-03 08:00:00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        }
-
         private static object[] CreateOverlappingRecordObject =
         {
             new object[]
@@ -91,17 +79,21 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("CreateOverlappingRecordObject")]
-        public void CreateOverlappingRecord(DateTime startDateTime1, int endTimeInt1, DateTime startDateTime2,
+        public void CreateRecord_RefuseOverlappingRecord(DateTime startDateTime1, int endTimeInt1, DateTime startDateTime2,
             int endTimeInt2)
         {
-            CreateRecord(startDateTime1, endTimeInt1, true, false);
-            CreateRecord(startDateTime2, endTimeInt2, false, false);
+            var size = Schedule.Records.Count;
+            CreateRecord_AddValidRecord_RefuseInvalidRecord(startDateTime1, endTimeInt1, true, false);
+            CreateRecord_AddValidRecord_RefuseInvalidRecord(startDateTime2, endTimeInt2, false, false);
+            var size1 = Schedule.Records.Count;
+            Assert.AreEqual(size+1, Schedule.Records.Count);
+
         }
 
         [TestCase(30, 5, false)]
         [TestCase(600, 6, false)]
         [TestCase(65, 4, false)]
-        public void CreateNRecords(int count, int month, bool secondRound)
+        public void CreateRecord_AddValidRecords(int count, int month, bool secondRound)
         {
             var user = new User();
             var size = Schedule.Records.Count;
@@ -119,8 +111,8 @@ namespace BBQTests
                         if (!secondRound)
                             RecordModel.CreateRecord(user, day, month, i, i + 1, true);
                         //todo bug found here
-                        /*else
-                            CreateRecord(new DateTime(DateTime.Now.Year, month, day, i, 0, 0), i + 1, true, false);*/
+                        else
+                            CreateRecord_AddValidRecord_RefuseInvalidRecord(new DateTime(DateTime.Now.Year, month, day, i, 0, 0), i + 1, true, false);
                         counter++;
                     }
                 }
@@ -129,8 +121,8 @@ namespace BBQTests
             }
 
             Assert.AreEqual(size + counter, Schedule.Records.Count);
-            /*if (!secondRound)
-                CreateNRecords(count, month, true);*/
+            if (!secondRound)
+                CreateRecord_AddValidRecords(count, month, true);
         }
 
         /// <summary>
@@ -148,7 +140,7 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("singleUserRecords")]
-        public void CheckScheduleSingleUser(User user, int userId, TestRecord firstRecord, TestRecord secondRecord)
+        public void ScheduleRecords_GetForSingleUser(User user, int userId, TestRecord firstRecord, TestRecord secondRecord)
         {
             user.Id = userId;
             firstRecord.SetUser(user);
@@ -176,7 +168,7 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("multipleUserRecords")]
-        public void CheckOverlapScheduleForMultipleUsers(User firstUser, int firstId, User secondUser, int secondId,
+        public void ScheduleRecords_RefuseOverlappingRecord_GetForMultipleUsers(User firstUser, int firstId, User secondUser, int secondId,
             TestRecord firstRecord, TestRecord secondRecord)
         {
             firstUser.Id = firstId;
@@ -218,7 +210,7 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("modelRecord")]
-        public void UpdateRecordInModel(User user, TestRecord record, String recordDate, int newStartTime,
+        public void UpdateRecord_ValidUpdate(User user, TestRecord record, String recordDate, int newStartTime,
             int newEndTime)
         {
             var size = Schedule.Records.Count;
@@ -252,7 +244,7 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("modelRecordWithOverlap")]
-        public void UpdateRecordInModelWithOverlap(User user, TestRecord firstRecord, TestRecord secondRecord,
+        public void UpdateRecord_RefuseOverlappingUpdate(User user, TestRecord firstRecord, TestRecord secondRecord,
             String recordDate, int newStartTime, int newEndTime)
         {
             var size = Schedule.Records.Count;
@@ -284,7 +276,7 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("deletRecordTestObjects")]
-        public void DeleteRecordTest(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd,
+        public void DeleteRecord_DeleteExisting_IgnoreNonExisting(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd,
             bool exist)
         {
             var size = Schedule.Records.Count;
@@ -294,12 +286,12 @@ namespace BBQTests
             if (exist)
             {
                 //Add record
-                RecordModel.CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd, exist);
+                RecordModel.CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd, true);
                 Assert.AreEqual(size + 1, Schedule.Records.Count);
 
                 //Select record from Record List
                 var selectedRecord =
-                    RecordModel.FindRecordByUserString(record.FromTime.ToString("dd MMMM, HH:mm") + "—" +
+                    RecordModel.FindRecordByUserInputString(record.FromTime.ToString("dd MMMM, HH:mm") + "—" +
                                                        record.ToTime.Hour + ":00");
 
                 //Delete selected record
@@ -310,7 +302,7 @@ namespace BBQTests
             {
                 //Select record from Record List
                 var selectedRecord =
-                    RecordModel.FindRecordByUserString(record.FromTime.ToString("dd MMMM, HH:mm") + "—" +
+                    RecordModel.FindRecordByUserInputString(record.FromTime.ToString("dd MMMM, HH:mm") + "—" +
                                                        record.ToTime.Hour + ":00");
                 //Delete non-exist record
                 RecordModel.DeleteRecord(selectedRecord);
@@ -327,7 +319,7 @@ namespace BBQTests
         };
 
         [Test, TestCaseSource("findRecordTestObjects")]
-        public void FindRecordTest(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd,
+        public void FindRecordByUserInputString_FromTheModel(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd,
             bool exist)
         {
             var size = Schedule.Records.Count;
@@ -342,17 +334,18 @@ namespace BBQTests
                 Assert.AreEqual(size + 1, Schedule.Records.Count);
 
                 //Select record from Record List
-                var record = RecordModel.FindRecordByUserString(text);
+                var record = RecordModel.FindRecordByUserInputString(text);
                 Assert.NotNull(record);
                 StringAssert.AreEqualIgnoringCase(text,
                     record.FromTime.ToString("dd MMMM, HH:mm") + "—" + record.ToTime.Hour + ":00");
             }
             else
             {
-                var record = RecordModel.FindRecordByUserString(text);
+                var record = RecordModel.FindRecordByUserInputString(text);
                 Assert.Null(record);
             }
         }
+        //Tests end
 
         private static void CreateRecordWithDialogueClass(User user, string day, string month, string startTime,
             string endTime)
@@ -375,30 +368,6 @@ namespace BBQTests
             recordCreator.ProcessTime(testRecord.endTime, false);
             recordCreator.ProcessApprove("Approve");
             recordCreator.Create(testRecord.user);
-        }
-
-        static object[] dateObject =
-        {
-            new object[] {"1", "August", "19:00", "22:00"},
-            new object[] {"2", "August", "19:00", "22:00"},
-            new object[] {DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00"}
-        };
-
-        [TestCase("1", "April", "19:00", "22:00")]
-        [TestCase("2", "April", "19:00", "22:00")]
-        [TestCase("3", "April", "19:00", "22:00")]
-        [Test, TestCaseSource("dateObject")]
-        public static void CreateRecordWithDialogueClassPut(string day, string month, string startTime,
-            string endTime)
-        {
-            var user = new User();
-            var recordCreator = new CreateRecordDialogue(null);
-            recordCreator.ProcessMonth(month);
-            recordCreator.ProcessDay(day);
-            recordCreator.ProcessTime(startTime, true);
-            recordCreator.ProcessTime(endTime, false);
-            recordCreator.ProcessApprove("Approve");
-            recordCreator.Create(user);
         }
 
         public class TestRecord

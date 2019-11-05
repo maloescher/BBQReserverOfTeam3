@@ -59,7 +59,7 @@ namespace BBQReserverBot.Model
             }
         }
 
-        public static Record FindRecordByUserString(string text)
+        public static Record FindRecordByUserInputString(string text)
         {
             foreach (var record in Schedule.Records)
             {
