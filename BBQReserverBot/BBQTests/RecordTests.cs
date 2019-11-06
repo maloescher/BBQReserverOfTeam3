@@ -90,7 +90,7 @@ namespace BBQTests
             Assert.AreEqual(size + 1, Schedule.Records.Count);
         }
 
-        [TestCase(30, 5, false)]
+        [TestCase(30, 1, false)]
         [TestCase(600, 8, false)]
         [TestCase(65, 4, false)]
         public void CreateRecord_AddValidRecords(int count, int month, bool secondRound)
