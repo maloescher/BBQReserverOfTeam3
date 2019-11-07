@@ -16,12 +16,12 @@ namespace BBQReserverBot.Model.Entities
             FromTime = new DateTime(DateTime.Now.Year, selectedMonth, selectedDay, selectedStart, 0, 0);
             ToTime = new DateTime(DateTime.Now.Year, selectedMonth, selectedDay, selectedEnd, 0, 0);
             if (FromTime < ToTime)
-                ToTime.AddDays(1);
+                ToTime = ToTime.AddDays(1);
 
             if (FromTime < DateTime.Now)
             {
-                FromTime.AddYears(1);
-                ToTime.AddYears(1);
+                FromTime = FromTime.AddYears(1);
+                ToTime = ToTime.AddYears(1);
             }
         }
 

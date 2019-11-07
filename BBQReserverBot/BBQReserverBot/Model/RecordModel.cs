@@ -22,6 +22,7 @@ namespace BBQReserverBot.Model
             {
                 var record = CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd);
                 if (CheckForTimeIntersections(record)) throw new ArgumentException("Date already taken");
+                if (RecordIsInPast(record)) throw new ArgumentException("Date lies in past");
 
                 Schedule.Records.Add(record);
                 return true;
@@ -66,6 +67,7 @@ namespace BBQReserverBot.Model
                 if (text.Equals(record.FromTime.ToString("dd MMMM, HH:mm") + "—" + record.ToTime.Hour + ":00"))
                     return record;
             }
+
             return null;
         }
 
@@ -80,12 +82,19 @@ namespace BBQReserverBot.Model
         private static bool CheckForTimeIntersectionsExcept(Record newRecord, Record exceptRecord)
         {
             var intersections = from records in Schedule.Records
-                where records.FromTime < newRecord.ToTime && records.ToTime > newRecord.FromTime 
+                where records.FromTime < newRecord.ToTime && records.ToTime > newRecord.FromTime
                 select records;
             intersections = from records in intersections
                 where records.Id != exceptRecord.Id
                 select records;
             return intersections.Any();
+        }
+
+        private static bool RecordIsInPast(Record record)
+        {
+            var now = DateTime.Now;
+            //record is before now, return true
+            return DateTime.Compare(now, record.FromTime) >= 0;
         }
     }
 }
