@@ -30,13 +30,17 @@ namespace BBQTests
             //todo bug found here
             new object[] {new DateTime(DateTime.Now.Year, 3, 20, 8, 0, 0), 13, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 05, 01, 9, 0, 0), 12, true, false},
-            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 10, 0, 0), 12, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 09, 01, 19, 0, 0), 22, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 08, 01, 21, 0, 0), 22, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 07, 01, 22, 0, 0), 22, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 01, 01, 6, 0, 0), 23, false, true},
             new object[] {new DateTime(DateTime.Now.Year, 01, 02, 18, 0, 0), 23, false, true},
             new object[] {new DateTime(DateTime.Now.Year, 01, 03, 6, 0, 0), 22, false, true},
+            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 10, 0, 0), 12, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 12, 0, 0), 14, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 14, 0, 0), 16, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 17, 0, 0), 19, true, false},
+            new object[] {new DateTime(DateTime.Now.Year, 04, 01, 20, 0, 0), 22, true, false},
         };
 
         [Test, TestCaseSource("createRecordObject")]
@@ -200,8 +204,8 @@ namespace BBQTests
             new object[]
             {
                 new User(),
-                new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00"),
-                DateTime.Now.ToString("yyyy-MM-dd"),
+                new TestRecord(DateTime.Now.AddDays(1), "19:00", "22:00"),
+                DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"),
                 18,
                 22
             }
@@ -211,6 +215,7 @@ namespace BBQTests
         public void UpdateRecord_ValidUpdate(User user, TestRecord record, String recordDate, int newStartTime,
             int newEndTime)
         {
+            
             var size = Schedule.Records.Count;
             record.SetUser(user);
 
@@ -233,9 +238,9 @@ namespace BBQTests
             new object[]
             {
                 new User(),
-                new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "19:00", "22:00"),
-                new TestRecord(DateTime.Now.ToString("dd"), DateTime.Now.ToString("MMMM"), "11:00", "12:00"),
-                DateTime.Now.ToString("yyyy-MM-dd"),
+                new TestRecord(DateTime.Now.AddDays(1), "19:00", "22:00"),
+                new TestRecord(DateTime.Now.AddDays(1), "11:00", "12:00"),
+                DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"),
                 11,
                 14
             }
@@ -381,6 +386,14 @@ namespace BBQTests
             {
                 this.day = day;
                 this.month = month;
+                this.startTime = startTime;
+                this.endTime = endTime;
+            }
+
+            public TestRecord(DateTime date, string startTime, string endTime)
+            {
+                day = date.ToString("dd");
+                month = date.ToString("MMMM");
                 this.startTime = startTime;
                 this.endTime = endTime;
             }

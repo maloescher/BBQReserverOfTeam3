@@ -5,9 +5,8 @@ namespace BBQReserverBot.Model.Entities
 {
     public class Record
     {
-        public Record()
-        {
-        }
+        public Record(int selectedDay, int selectedMonth, int selectedStart, int selectedEnd) : this(new User(),
+            selectedDay, selectedMonth, selectedStart, selectedEnd){}
 
         public Record(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd)
         {
@@ -15,7 +14,7 @@ namespace BBQReserverBot.Model.Entities
             User = user;
             FromTime = new DateTime(DateTime.Now.Year, selectedMonth, selectedDay, selectedStart, 0, 0);
             ToTime = new DateTime(DateTime.Now.Year, selectedMonth, selectedDay, selectedEnd, 0, 0);
-            if (FromTime < ToTime)
+            if (FromTime > ToTime)
                 ToTime = ToTime.AddDays(1);
 
             if (FromTime < DateTime.Now)
