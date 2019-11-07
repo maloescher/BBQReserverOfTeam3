@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using NUnit.Framework;
 using BBQReserverBot.Dialogues;
 using BBQReserverBot.Model;
@@ -48,7 +46,7 @@ namespace BBQTests
             var size = Schedule.Records.Count;
             var day = startDateTime.Day.ToString();
             var month = startDateTime.ToString("MMMM");
-            var startTime = startDateTime.ToString("HH:mm");
+            var startTime = startDateTime.ToString("H:mm");
             var endTime = endTimeInt + ":00";
 
             if (valid)
