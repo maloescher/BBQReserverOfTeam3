@@ -74,7 +74,7 @@ namespace BBQReserverBot.Dialogues
 
         internal async void AskForRecord(int userId)
         {
-            var records = from record in Schedule.Records where record.User.Id == userId select record;
+            var records = from record in RecordModel.GetAllRecords() where record.User.Id == userId select record;
             await _sendMessege("Select one of your reservations to update or delete:",
                 (ReplyKeyboardMarkup)
                 records

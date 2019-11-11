@@ -30,7 +30,7 @@ namespace BBQReserverBot.Dialogues
 
             public override async Task<AbstractDialogue> OnMessage(MessageEventArgs args)
             {
-                var records = from record in Schedule.Records
+                var records = from record in RecordModel.GetAllRecords()
                     where record.User.Id == args.Message.From.Id
                     select record;
                 await _sendMessege("You have the following reservations:",

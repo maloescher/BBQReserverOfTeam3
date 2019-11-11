@@ -18,7 +18,7 @@ namespace BBQTests
         [TearDown]
         public void ClearRecordsAfterEachTest()
         {
-            Schedule.Records.Clear();
+            RecordModel.GetAllRecords().Clear();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace BBQTests
         public void CreateRecord_AddValidRecord_RefuseInvalidRecord(DateTime startDateTime, int endTimeInt, bool valid, bool outOfRange)
         {
             var user = new User();
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             var day = startDateTime.Day.ToString();
             var month = startDateTime.ToString("MMMM");
             var startTime = startDateTime.ToString("H:mm");
@@ -57,9 +57,9 @@ namespace BBQTests
             {
                 CreateRecordWithDialogueClass(user, day, month, startTime, endTime);
 
-                Assert.AreEqual(size + 1, Schedule.Records.Count);
+                Assert.AreEqual(size + 1, RecordModel.GetAllRecords().Count);
                 StringAssert.AreEqualIgnoringCase(startDateTime.ToString("MM-dd HH:mm:ss"),
-                    Schedule.Records[size].FromTime.ToString("MM-dd HH:mm:ss"));
+                    RecordModel.GetAllRecords()[size].FromTime.ToString("MM-dd HH:mm:ss"));
             }
             else
             {
@@ -67,7 +67,7 @@ namespace BBQTests
                     Assert.Throws<ArgumentOutOfRangeException>(() =>
                         CreateRecordWithDialogueClass(user, day, month, startTime, endTime));
                 else
-                    Assert.AreEqual(size, Schedule.Records.Count);
+                    Assert.AreEqual(size, RecordModel.GetAllRecords().Count);
             }
         }
 
@@ -84,11 +84,11 @@ namespace BBQTests
         public void CreateRecord_RefuseOverlappingRecord(DateTime startDateTime1, int endTimeInt1, DateTime startDateTime2,
             int endTimeInt2)
         {
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             CreateRecord_AddValidRecord_RefuseInvalidRecord(startDateTime1, endTimeInt1, true, false);
             CreateRecord_AddValidRecord_RefuseInvalidRecord(startDateTime2, endTimeInt2, false, false);
-            var size1 = Schedule.Records.Count;
-            Assert.AreEqual(size+1, Schedule.Records.Count);
+            var size1 = RecordModel.GetAllRecords().Count;
+            Assert.AreEqual(size+1, RecordModel.GetAllRecords().Count);
 
         }
 
@@ -98,7 +98,7 @@ namespace BBQTests
         public void CreateRecord_AddValidRecords(int count, int month, bool secondRound)
         {
             var user = new User();
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             var counter = 0;
             while (counter < count)
             {
@@ -122,7 +122,7 @@ namespace BBQTests
                 month++;
             }
 
-            Assert.AreEqual(size + counter, Schedule.Records.Count);
+            Assert.AreEqual(size + counter, RecordModel.GetAllRecords().Count);
             if (!secondRound)
                 CreateRecord_AddValidRecords(count, month, true);
         }
@@ -147,14 +147,14 @@ namespace BBQTests
             user.Id = userId;
             firstRecord.SetUser(user);
             secondRecord.SetUser(user);
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             var userRecordCount =
-                (from record in Schedule.Records where record.User.Id == userId select record).Count();
+                (from record in RecordModel.GetAllRecords() where record.User.Id == userId select record).Count();
 
             CreateRecordWithDialogueClass(firstRecord);
             CreateRecordWithDialogueClass(secondRecord);
-            Assert.AreEqual(size + 2, Schedule.Records.Count);
-            var userSchedule = from record in Schedule.Records where record.User.Id == userId select record;
+            Assert.AreEqual(size + 2, RecordModel.GetAllRecords().Count);
+            var userSchedule = from record in RecordModel.GetAllRecords() where record.User.Id == userId select record;
             Assert.AreEqual(userRecordCount + 2, userSchedule.Count());
         }
 
@@ -174,11 +174,11 @@ namespace BBQTests
             TestRecord firstRecord, TestRecord secondRecord)
         {
             firstUser.Id = firstId;
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             firstRecord.SetUser(firstUser);
             
-            var firstUserSchedule = from record in Schedule.Records where record.User.Id == firstId select record;
-            var secondUserSchedule = from record in Schedule.Records where record.User.Id == secondId select record;
+            var firstUserSchedule = from record in RecordModel.GetAllRecords() where record.User.Id == firstId select record;
+            var secondUserSchedule = from record in RecordModel.GetAllRecords() where record.User.Id == secondId select record;
             var firstUserSize = firstUserSchedule.Count();
             var secondUserSize = secondUserSchedule.Count();
             
@@ -188,10 +188,10 @@ namespace BBQTests
             secondRecord.SetUser(secondUser);
             CreateRecordWithDialogueClass(secondRecord);
             
-            firstUserSchedule = from record in Schedule.Records where record.User.Id == firstId select record;
-            secondUserSchedule = from record in Schedule.Records where record.User.Id == secondId select record;
+            firstUserSchedule = from record in RecordModel.GetAllRecords() where record.User.Id == firstId select record;
+            secondUserSchedule = from record in RecordModel.GetAllRecords() where record.User.Id == secondId select record;
 
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            Assert.AreEqual(size + 1, RecordModel.GetAllRecords().Count);
             Assert.AreEqual(firstUserSize+1, firstUserSchedule.Count());
             Assert.AreEqual(secondUserSize, secondUserSchedule.Count());
         }
@@ -216,21 +216,21 @@ namespace BBQTests
             int newEndTime)
         {
             
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             record.SetUser(user);
 
             CreateRecordWithDialogueClass(record);
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            Assert.AreEqual(size + 1, RecordModel.GetAllRecords().Count);
 
             StringAssert.AreEqualIgnoringCase(recordDate + " " + record.startTime + ":00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                RecordModel.GetAllRecords()[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
-            RecordModel.UpdateRecord(Schedule.Records[size], user, newStartTime, newEndTime);
+            RecordModel.UpdateRecord(RecordModel.GetAllRecords()[size], user, newStartTime, newEndTime);
 
-            Assert.AreEqual(size + 1, Schedule.Records.Count);
+            Assert.AreEqual(size + 1, RecordModel.GetAllRecords().Count);
 
             StringAssert.AreEqualIgnoringCase(recordDate + " " + newStartTime + ":00:00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                RecordModel.GetAllRecords()[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
         static object[] modelRecordWithOverlap =
@@ -250,23 +250,23 @@ namespace BBQTests
         public void UpdateRecord_RefuseOverlappingUpdate(User user, TestRecord firstRecord, TestRecord secondRecord,
             String recordDate, int newStartTime, int newEndTime)
         {
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             firstRecord.SetUser(user);
             secondRecord.SetUser(user);
 
             CreateRecordWithDialogueClass(firstRecord);
             CreateRecordWithDialogueClass(secondRecord);
-            Assert.AreEqual(size + 2, Schedule.Records.Count);
+            Assert.AreEqual(size + 2, RecordModel.GetAllRecords().Count);
 
             StringAssert.AreEqualIgnoringCase(recordDate + " " + firstRecord.startTime + ":00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                RecordModel.GetAllRecords()[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
-            RecordModel.UpdateRecord(Schedule.Records[size], user, newStartTime, newEndTime);
+            RecordModel.UpdateRecord(RecordModel.GetAllRecords()[size], user, newStartTime, newEndTime);
 
-            Assert.AreEqual(size + 2, Schedule.Records.Count);
+            Assert.AreEqual(size + 2, RecordModel.GetAllRecords().Count);
 
             StringAssert.AreNotEqualIgnoringCase(recordDate + " " + newStartTime + ":00:00",
-                Schedule.Records[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                RecordModel.GetAllRecords()[size].FromTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace BBQTests
         public void DeleteRecord_DeleteExisting_IgnoreNonExisting(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd,
             bool exist)
         {
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             var record = new Record(user, selectedDay, selectedMonth, selectedStart, selectedEnd);
 
             //Record is exist or not
@@ -290,7 +290,7 @@ namespace BBQTests
             {
                 //Add record
                 RecordModel.CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd, true);
-                Assert.AreEqual(size + 1, Schedule.Records.Count);
+                Assert.AreEqual(size + 1, RecordModel.GetAllRecords().Count);
 
                 //Select record from Record List
                 var selectedRecord =
@@ -299,7 +299,7 @@ namespace BBQTests
 
                 //Delete selected record
                 RecordModel.DeleteRecord(selectedRecord);
-                Assert.AreEqual(size, Schedule.Records.Count);
+                Assert.AreEqual(size, RecordModel.GetAllRecords().Count);
             }
             else
             {
@@ -309,7 +309,7 @@ namespace BBQTests
                                                        record.ToTime.Hour + ":00");
                 //Delete non-exist record
                 RecordModel.DeleteRecord(selectedRecord);
-                Assert.AreEqual(size, Schedule.Records.Count);
+                Assert.AreEqual(size, RecordModel.GetAllRecords().Count);
             }
         }
 
@@ -325,7 +325,7 @@ namespace BBQTests
         public void FindRecordByUserInputString_FromTheModel(User user, int selectedDay, int selectedMonth, int selectedStart, int selectedEnd,
             bool exist)
         {
-            var size = Schedule.Records.Count;
+            var size = RecordModel.GetAllRecords().Count;
             var testRecord = new Record(user, selectedDay, selectedMonth, selectedStart, selectedEnd);
             var text = testRecord.FromTime.ToString("dd MMMM, HH:mm") + "—" + testRecord.ToTime.Hour + ":00";
 
@@ -334,7 +334,7 @@ namespace BBQTests
             {
                 //Add record
                 RecordModel.CreateRecord(user, selectedDay, selectedMonth, selectedStart, selectedEnd, exist);
-                Assert.AreEqual(size + 1, Schedule.Records.Count);
+                Assert.AreEqual(size + 1, RecordModel.GetAllRecords().Count);
 
                 //Select record from Record List
                 var record = RecordModel.FindRecordByUserInputString(text);
