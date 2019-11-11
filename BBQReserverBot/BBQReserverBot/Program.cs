@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using BBQReserverBot.Controllers;
 using BBQReserverBot.Dialogues;
 using BBQReserverBot.Model;
 using Microsoft.AspNetCore;
@@ -26,6 +27,7 @@ namespace BBQReserverBot
         private static TelegramBotClient Bot;
         public static void Main(string[] args)
         {
+            DatabaseController.CreateDatabase();
             Bot = new TelegramBotClient("1041560156:AAHa75a3ywVBanzZhnhkTVH3n475aGKX6mM");
             var me = Bot.GetMeAsync().Result;
             Console.Title = me.Username;
