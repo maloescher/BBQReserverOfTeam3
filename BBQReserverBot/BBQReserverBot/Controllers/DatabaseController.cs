@@ -1,5 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
+using BBQReserverBot.Model;
+using BBQReserverBot.Model.Entities;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2.HPack;
+using Telegram.Bot.Types;
 
 namespace BBQReserverBot.Controllers
 {
@@ -9,7 +14,7 @@ namespace BBQReserverBot.Controllers
          private static SQLiteConnection _connection;
          private static SQLiteCommand _command;
          
-         public static SQLiteCommand CreateDatabase()
+         public static void CreateDatabase()
          {
              _connection = new SQLiteConnection(_database);
              _connection.Open();
@@ -23,8 +28,12 @@ namespace BBQReserverBot.Controllers
              _command.CommandText = @"CREATE TABLE IF NOT EXISTS records(id INTEGER PRIMARY KEY AUTOINCREMENT,
                     fromTime TIMESTAMP, toTime TIMESTAMP, userID int, FOREIGN KEY (userID) REFERENCES users(id))";
              _command.ExecuteNonQuery();
+         }
 
-             return _command;
+         public static void DestroyDatabase()
+         {
+             if (System.IO.File.Exists(_database))
+                System.IO.File.Delete(_database);
          }
 
          public static void ExecuteCommand(String command)
@@ -36,6 +45,29 @@ namespace BBQReserverBot.Controllers
              
              _command.CommandText = command;
              _command.ExecuteNonQuery();
+         }
+
+         public static List<Record> GetRecords()
+         {
+             var connection = new SQLiteConnection(_database);
+             connection.Open();
+             var command = new SQLiteCommand(connection);
+             
+            command.CommandText = "select * from records";
+             SQLiteDataReader reader = command.ExecuteReader();
+
+             List<Record> recordList = new List<Record>();
+             while (reader.Read())
+             {
+                 var user = new User();
+                 user.Id = (int) reader["userID"];
+                 DateTime fromTime = (DateTime) reader["fromTime"];
+                 DateTime toTime = (DateTime) reader["toTime"];
+                 long id = (long) reader["id"];
+                 var record = new Record(id, user, fromTime, toTime);
+                 recordList.Add(record);
+             }
+             return recordList;
          }
      }
  }

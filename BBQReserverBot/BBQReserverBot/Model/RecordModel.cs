@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BBQReserverBot.Controllers;
 using BBQReserverBot.Model.Entities;
 using Telegram.Bot.Types;
 
@@ -25,8 +26,7 @@ namespace BBQReserverBot.Model
                 if (CheckForTimeIntersections(record)) throw new ArgumentException("Date already taken");
                 if (RecordIsInPast(record)) throw new ArgumentException("Date lies in past");
 
-                RecordModel.GetAllRecords().Add(record);
-                return true;
+                return WriteRecord(record);
             }
             catch (ArgumentException e)
             {
@@ -35,14 +35,25 @@ namespace BBQReserverBot.Model
             }
         }
 
+        private static bool WriteRecord(Record record)
+        {
+            var fromTime = record.FromTime.ToString("yyyy-MM-dd HH:mm:ss.sss");
+            var toTime = record.ToTime.ToString("yyyy-MM-dd HH:mm:ss.sss");
+            var command = "insert into records (fromTime, toTime, userID) values ('"+fromTime+"','"+toTime+"', '"+record.User.Id+"')";
+            DatabaseController.ExecuteCommand(command);
+            return true;
+        }
+
         public static bool DeleteRecord(Record record)
         {
-            return RecordModel.GetAllRecords().Contains(record) && RecordModel.GetAllRecords().Remove(record);
+            var command = "delete from records where id = " + record.Id;
+            DatabaseController.ExecuteCommand(command);
+            return true;
         }
 
         public static bool UpdateRecord(Record oldRecord, User user, int newStart, int newEnd)
         {
-            if (user.Id != oldRecord.User.Id || !RecordModel.GetAllRecords().Contains(oldRecord)) return false;
+            if (user.Id != oldRecord.User.Id) return false;
             var day = oldRecord.FromTime.Day;
             var month = oldRecord.FromTime.Month;
             try
@@ -51,7 +62,7 @@ namespace BBQReserverBot.Model
                 if (CheckForTimeIntersectionsExcept(record, oldRecord))
                     throw new ArgumentException("Change not possible, overlapping");
                 DeleteRecord(oldRecord);
-                RecordModel.GetAllRecords().Add(record);
+                WriteRecord(record);
                 return true;
             }
             catch (ArgumentException e)
@@ -74,12 +85,12 @@ namespace BBQReserverBot.Model
 
         public static List<Record> GetAllRecords()
         {
-            return Schedule.Records;
+            return DatabaseController.GetRecords();
         }
 
         private static bool CheckForTimeIntersections(Record newRecord)
         {
-            var intersections = from records in RecordModel.GetAllRecords()
+            var intersections = from records in GetAllRecords()
                 where records.FromTime < newRecord.ToTime && records.ToTime > newRecord.FromTime
                 select records;
             return intersections.Any();
@@ -87,7 +98,7 @@ namespace BBQReserverBot.Model
 
         private static bool CheckForTimeIntersectionsExcept(Record newRecord, Record exceptRecord)
         {
-            var intersections = from records in RecordModel.GetAllRecords()
+            var intersections = from records in GetAllRecords()
                 where records.FromTime < newRecord.ToTime && records.ToTime > newRecord.FromTime
                 select records;
             intersections = from records in intersections

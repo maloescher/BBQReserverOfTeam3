@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using BBQReserverBot.Controllers;
 using NUnit.Framework;
 using BBQReserverBot.Dialogues;
 using BBQReserverBot.Model;
@@ -13,12 +14,14 @@ namespace BBQTests
         [SetUp]
         public void Setup()
         {
+            DatabaseController.DestroyDatabase();
+            DatabaseController.CreateDatabase();
         }
 
         [TearDown]
         public void ClearRecordsAfterEachTest()
         {
-            RecordModel.GetAllRecords().Clear();
+            DatabaseController.DestroyDatabase();
         }
 
         /// <summary>
@@ -92,9 +95,9 @@ namespace BBQTests
 
         }
 
-        [TestCase(30, 5, false)]
-        [TestCase(600, 6, false)]
-        [TestCase(65, 4, false)]
+        [TestCase(15, 5, false)]
+        [TestCase(5, 6, false)]
+        [TestCase(20, 4, false)]
         public void CreateRecord_AddValidRecords(int count, int month, bool secondRound)
         {
             var user = new User();
