@@ -5,24 +5,37 @@ namespace BBQReserverBot.Controllers
 {
      public class DatabaseController
      {
+         private static string _database = @"URI=file:bbq.db";
+         private static SQLiteConnection _connection;
+         private static SQLiteCommand _command;
+         
          public static SQLiteCommand CreateDatabase()
          {
-             string cs = @"URI=file:bbq.db";
+             _connection = new SQLiteConnection(_database);
+             _connection.Open();
 
-             var con = new SQLiteConnection(cs);
-             con.Open();
+             _command = new SQLiteCommand(_connection);
 
-             var cmd = new SQLiteCommand(con);
-
-             cmd.CommandText = @"CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,
+             _command.CommandText = @"CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,
                      name TEXT)";
-             cmd.ExecuteNonQuery();
+             _command.ExecuteNonQuery();
              
-             cmd.CommandText = @"CREATE TABLE IF NOT EXISTS records(id INTEGER PRIMARY KEY AUTOINCREMENT,
+             _command.CommandText = @"CREATE TABLE IF NOT EXISTS records(id INTEGER PRIMARY KEY AUTOINCREMENT,
                     fromTime TIMESTAMP, toTime TIMESTAMP, userID int, FOREIGN KEY (userID) REFERENCES users(id))";
-             cmd.ExecuteNonQuery();
+             _command.ExecuteNonQuery();
 
-             return cmd;
+             return _command;
+         }
+
+         public static void ExecuteCommand(String command)
+         {
+             if (_connection == null)
+             {
+                 CreateDatabase();
+             }
+             
+             _command.CommandText = command;
+             _command.ExecuteNonQuery();
          }
      }
  }
