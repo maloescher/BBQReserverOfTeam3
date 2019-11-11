@@ -46,6 +46,7 @@ namespace BBQReserverBot.Model
 
         public static bool DeleteRecord(Record record)
         {
+            if (!DatabaseController.RecordExists(record)) return false;
             var command = "delete from records where id = " + record.Id;
             DatabaseController.ExecuteCommand(command);
             return true;

@@ -32,8 +32,8 @@ namespace BBQReserverBot.Controllers
 
          public static void DestroyDatabase()
          {
-             if (System.IO.File.Exists(_database))
-                System.IO.File.Delete(_database);
+             _command.CommandText = @"delete from records;";
+             _command.ExecuteNonQuery();
          }
 
          public static void ExecuteCommand(String command)
@@ -68,6 +68,18 @@ namespace BBQReserverBot.Controllers
                  recordList.Add(record);
              }
              return recordList;
+         }
+
+         public static bool RecordExists(Record record)
+         {
+             if (record == null) return false;
+             if (_connection == null)
+             {
+                 CreateDatabase();
+             }
+             var sql = "select * from records where id = " + record.Id;
+             _command.CommandText = sql;
+             return Convert.ToInt32(_command.ExecuteScalar()) > 1;
          }
      }
  }

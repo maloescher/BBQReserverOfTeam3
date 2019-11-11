@@ -14,7 +14,6 @@ namespace BBQTests
         [SetUp]
         public void Setup()
         {
-            DatabaseController.DestroyDatabase();
             DatabaseController.CreateDatabase();
         }
 
@@ -30,7 +29,6 @@ namespace BBQTests
         /// 
         static object[] createRecordObject =
         {    
-            //todo bug found here
             new object[] {new DateTime(DateTime.Now.Year, 3, 20, 8, 0, 0), 13, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 05, 01, 9, 0, 0), 12, true, false},
             new object[] {new DateTime(DateTime.Now.Year, 09, 01, 19, 0, 0), 22, true, false},
