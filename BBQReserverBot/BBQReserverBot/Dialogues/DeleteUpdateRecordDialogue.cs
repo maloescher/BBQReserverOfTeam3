@@ -46,7 +46,7 @@ namespace BBQReserverBot.Dialogues
                     else if (_record.User.Id != userId)
                     {
                         _state = 99;
-                        await _sendMessege("Invalid Record, It is another user reservation", new ReplyKeyboardRemove());
+                        await _sendMessege("Invalid Record, It is another user reservation", MainMenuDialogue.getMainMenuKeyboard());
                         break;
                     }
                     AskForOption();
@@ -65,10 +65,10 @@ namespace BBQReserverBot.Dialogues
                 case 5:
                     ProcessTime(args.Message.Text, false);
                     if (RecordModel.UpdateRecord(_record, _record.User, _updateStart, _updateStop))
-                        await _sendMessege("Update successful", new ReplyKeyboardRemove());
+                        await _sendMessege("Update successful", MainMenuDialogue.getMainMenuKeyboard());
                     else
                         await _sendMessege("Change not possible, time is overlapping with another reservation",
-                            new ReplyKeyboardRemove());
+                            MainMenuDialogue.getMainMenuKeyboard());
                     _state = 99;
                     break;
                 case 99:

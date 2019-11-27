@@ -193,12 +193,12 @@ namespace BBQReserverBot.Dialogues
                 if (success)
                 {
                     await _sendMessege("Yay! Your reservation is approved. Have a great BBQing!",
-                        new ReplyKeyboardRemove());
+                        MainMenuDialogue.getMainMenuKeyboard());
                 }
                 else
                 {
                     await _sendMessege("There is already a reservation at that time. Maybe you can join them))",
-                        new ReplyKeyboardRemove());
+                        MainMenuDialogue.getMainMenuKeyboard());
                 }
 
                 var md = new MainMenuDialogue(_sendMessege);
@@ -208,7 +208,7 @@ namespace BBQReserverBot.Dialogues
 
             if (CurrentState == State.Fail)
             {
-                await _sendMessege("Something went wrong!)", new ReplyKeyboardRemove());
+                await _sendMessege("Something went wrong!)", MainMenuDialogue.getMainMenuKeyboard());
                 var md = new MainMenuDialogue(_sendMessege);
                 await md.OnMessage(args);
                 return md;
