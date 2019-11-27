@@ -33,7 +33,8 @@ namespace BBQReserverBot.Dialogues
             {
                 case 1:
                     AskForRecord(userId);
-                    _state++;
+                    if (_state != 99)
+                        _state++;
                     break;
                 case 2:
                     _record = RecordModel.FindRecordByUserInputString(text);
@@ -81,11 +82,22 @@ namespace BBQReserverBot.Dialogues
         internal async void AskForRecord(int userId)
         {
             var records = from record in RecordModel.GetAllRecords() where record.User.Id == userId select record;
-            await _sendMessege("Select one of your reservations to update or delete:",
-                (ReplyKeyboardMarkup)
-                records
-                    .Select(x => new []{x.FromTime.ToString("dd MMMM, HH:mm") + "—" + x.ToTime.Hour + ":00"})
-                    .ToArray());
+
+            if (records.Count() < 1)
+            {
+                _state = 99;
+                var _menueMessage = "No record found";
+
+                await _sendMessege(_menueMessage, new ReplyKeyboardRemove());
+            }
+            else
+            {
+                await _sendMessege("Select one of your reservations to update or delete:",
+                    (ReplyKeyboardMarkup)
+                    records
+                        .Select(x => new[] {x.FromTime.ToString("dd MMMM, HH:mm") + "—" + x.ToTime.Hour + ":00"})
+                        .ToArray());
+            }
         }
 
         private async void AskForOption()
