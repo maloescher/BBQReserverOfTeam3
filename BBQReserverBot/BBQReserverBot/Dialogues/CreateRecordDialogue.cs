@@ -135,7 +135,8 @@ namespace BBQReserverBot.Dialogues
             else
             {
                 SelectedEnd = (int) x;
-                CurrentState = State.Approve;
+                if (SelectedStart != SelectedEnd)
+                    CurrentState = State.Approve;
             }
         }
 
