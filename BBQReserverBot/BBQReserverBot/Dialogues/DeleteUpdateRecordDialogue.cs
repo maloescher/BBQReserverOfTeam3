@@ -47,7 +47,7 @@ namespace BBQReserverBot.Dialogues
                     break;
                 case 3:
                     _state++;
-                    if (Operate(text))
+                    if (Operate(text, userId))
                         await _sendMessege("Deletion successful", new ReplyKeyboardRemove());
                     break;
                 case 4:
@@ -92,11 +92,11 @@ namespace BBQReserverBot.Dialogues
             await _sendMessege("Do you want to update or to delete your entry?", markup);
         }
 
-        private bool Operate(string text)
+        private bool Operate(string text, int userID)
         {
             if (text.Equals("Delete"))
             {
-                RecordModel.DeleteRecord(_record);
+                RecordModel.DeleteRecord(_record, userID);
                 _state = 99;
                 return true;
             }
