@@ -30,7 +30,7 @@
 ## Disclaimer
 >Telegram is blocked in Russia
 [A letter from the FSB about an administrative offense (in Russian)](https://agora.legal/fs/a_delo2doc/55_file_Telegram_FSB_140917.pdf)
-It was the customer’s requirement for the product to be developed as a Telegram bot (see [Requirements document](https://github.com/maloescher/BBQReserverOfTeam3/blob/master/%5BRE%5D%20Use%20Cases.pdf) page 2).emo_user1
+It was the customer’s requirement for the product to be developed as a Telegram bot (see [Requirements document](https://github.com/maloescher/BBQReserverOfTeam3/blob/master/%5BRE%5D%20Use%20Cases.pdf) page 2).
 
 ## Note on Decision points
 For every test case, decision points are covered in the name of the test case step. So that:
@@ -326,8 +326,8 @@ For every test case, decision points are covered in the name of the test case st
   
 
 ## Problem Description <a name="problems-3"></a>
-**P-1:** A user can delete a reservation created by another user by entering a date and time of his reservation.
-**W-2:** The system shows the standard button and start to infinite loop.
+- **P-1:** A user can delete a reservation created by another user by entering a date and time of his reservation.
+- **W-2:** The system shows the standard button and start to infinite loop.
 
 ## US005 - Checking a schedule
 | **Use Case Code US005** | Checking a schedule |
