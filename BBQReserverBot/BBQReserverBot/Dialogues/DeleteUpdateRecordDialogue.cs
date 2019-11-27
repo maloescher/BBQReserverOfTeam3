@@ -55,7 +55,7 @@ namespace BBQReserverBot.Dialogues
                 case 3:
                     _state++;
                     if (Operate(text, userId))
-                        await _sendMessege("Deletion successful", new ReplyKeyboardRemove());
+                        await _sendMessege("Deletion successful", MainMenuDialogue.getMainMenuKeyboard());
                     break;
                 case 4:
                     ProcessTime(args.Message.Text, true);
@@ -91,7 +91,7 @@ namespace BBQReserverBot.Dialogues
                 _state = 99;
                 var _menueMessage = "No record found";
 
-                await _sendMessege(_menueMessage, new ReplyKeyboardRemove());
+                await _sendMessege(_menueMessage, MainMenuDialogue.getMainMenuKeyboard());
             }
             else
             {
