@@ -42,6 +42,12 @@ namespace BBQReserverBot.Dialogues
                         AskForRecord(userId);
                         break;
                     }
+                    else if (_record.User.Id != userId)
+                    {
+                        _state = 99;
+                        await _sendMessege("Invalid Record, It is another user reservation", new ReplyKeyboardRemove());
+                        break;
+                    }
                     AskForOption();
                     _state++;
                     break;
