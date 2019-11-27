@@ -66,6 +66,9 @@ namespace BBQReserverBot.Dialogues
                     ProcessTime(args.Message.Text, false);
                     if (RecordModel.UpdateRecord(_record, _record.User, _updateStart, _updateStop))
                         await _sendMessege("Update successful", new ReplyKeyboardRemove());
+                    else
+                        await _sendMessege("Change not possible, time is overlapping with another reservation",
+                            new ReplyKeyboardRemove());
                     _state = 99;
                     break;
                 case 99:
