@@ -39,7 +39,7 @@ $ sudo apt-get install dotnet-sdk-2.2
 ## Run the bot
 Navigate to **BBQReserverBot** subfolder and run the following code:
 ```
-$ serverBot
+$ cd BBQReserverBot
 $ dotnet build
 ```
 change to **BBQReserverBot/BBQReserverBot** folder one level deeper
